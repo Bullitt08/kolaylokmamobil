@@ -3,6 +3,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'pages/homepage.dart';
+import 'pages/search.dart';
+import 'pages/login.dart';
+
+
+
 void main() {
   runApp(const MaterialApp(
     home: MyApp(),
@@ -17,95 +23,50 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  LatLng? userLocation;
-  MapController mapController = MapController();
-  double zoomLevel = 13.0;
+  int _currentIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
-  }
-
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Lütfen konumunuzu açınız")),
-      );
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Konum izni gerekli.")),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Konum izni gerekli.")),
-      );
-      return;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-      locationSettings: LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
-    );
-
-    if (mounted) {
-      setState(() {
-        userLocation = LatLng(position.latitude, position.longitude);
-      });
-
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (userLocation != null) {
-          mapController.move(userLocation!, 13.0);
-        }
-      });
-    }
-  }
-
-  void _zoomIn() {
-    setState(() {
-      zoomLevel++;
-      if (userLocation != null) {
-        mapController.move(userLocation!, zoomLevel);
-      }
-    });
-  }
-
-  void _zoomOut() {
-    setState(() {
-      zoomLevel--;
-      if (userLocation != null) {
-        mapController.move(userLocation!, zoomLevel);
-      }
-    });
-  }
-
+  final List<Widget> _pages = [
+    Homepage(),
+    Search(),
+    Container(),
+  ];
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        title: const Text("Kolaylokma"),
+        title:Text("Kolaylokma"),
       ),
-      body: userLocation == null
-          ? const Center(child: CircularProgressIndicator())
-          : buildBody(context),
+      body: _currentIndex == 3
+          ? const Login()
+          : _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (int index) {
+          if (index == 2) {
+            if(_currentIndex == 0) {
+              _showFilterDialog();
+            }
+            else{
+              setState(() {
+                _currentIndex = 0;
+              });
+              Future.delayed(const Duration(milliseconds: 500 ),(){
+                _showFilterDialog();
+              });
+            }
+          } else if (index == 3) {
+            setState(() {
+              _currentIndex = index;
+            });
+          } else {
+            setState(() {
+              _currentIndex = index;
+            });
+          }
+        },
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -122,75 +83,36 @@ class _MyAppState extends State<MyApp> {
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
             label: 'Hesabım',
+
           ),
         ],
       ),
     );
   }
 
-  Widget buildBody(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        FlutterMap(
-          mapController: mapController,
-          options: MapOptions(
-            initialCenter: userLocation ?? LatLng(0.0, 0.0),
-            initialZoom: zoomLevel,
+  void _showFilterDialog(){
+    showDialog(context: context,
+        builder:(BuildContext context){
+          return AlertDialog(
+              title: const Text('Filter Options'),
+              content: const Text('Filter options will be added here.'),
+              actions: <Widget>[
+              TextButton(
+              onPressed: () {
+            Navigator.of(context).pop(); // Dialog'u kapat
+          },
+          child: const Text('Cancel'),
           ),
-          children: [
-            TileLayer(
-              urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-            ),
-            MarkerLayer(
-              markers: [
-                if (userLocation != null)
-                  Marker(
-                    width: 80.0,
-                    height: 80.0,
-                    point: userLocation!,
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.red,
-                      size: 40.0,
-                    ),
-                  ),
-              ],
-            ),
+          TextButton(
+          onPressed: () {
+          Navigator.of(context).pop(); // Dialog'u kapat ve filtre işlemi yapılabilir
+          },
+          child: const Text('Apply'),
+          ),
           ],
-        ),
-
-        Positioned(
-          bottom: 30.0,
-          right: 10.0,
-          child: FloatingActionButton(
-            onPressed: () {
-              _getCurrentLocation();
-            },
-            child: const Icon(Icons.my_location),
-            backgroundColor: Colors.blueAccent,
-          ),
-        ),
-
-        Positioned(
-          bottom: 100.0,
-          right: 10.0,
-          child: FloatingActionButton(
-            onPressed: _zoomIn,
-            child: const Icon(Icons.zoom_in),
-            backgroundColor: Colors.blueAccent,
-          ),
-        ),
-
-        Positioned(
-          bottom: 170.0,
-          right: 10.0,
-          child: FloatingActionButton(
-            onPressed: _zoomOut,
-            child: const Icon(Icons.zoom_out),
-            backgroundColor: Colors.blueAccent,
-          ),
-        ),
-      ],
+          );
+        },
     );
   }
+
 }
