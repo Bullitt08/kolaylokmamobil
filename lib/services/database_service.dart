@@ -1,0 +1,217 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
+import '../models/user_model.dart';
+import '../models/restaurant_model.dart';
+import '../models/menu_item_model.dart';
+
+class DatabaseService {
+  final _supabase = Supabase.instance.client;
+
+  // Kullanıcı İşlemleri
+  Future<void> createUser(UserModel user) async {
+    await _supabase.from('users').insert(user.toMap());
+  }
+
+  Future<UserModel?> getUser(String userId) async {
+    final data =
+        await _supabase.from('users').select().eq('id', userId).single();
+    return data != null ? UserModel.fromMap(data) : null;
+  }
+
+  Future<void> updateUser(String userId, Map<String, dynamic> data) async {
+    await _supabase.from('users').update(data).eq('id', userId);
+  }
+
+  // Restoran İşlemleri
+  Future<void> createRestaurant(RestaurantModel restaurant) async {
+    await _supabase.from('restaurants').insert(restaurant.toMap());
+  }
+
+  Future<RestaurantModel?> getRestaurant(String restaurantId) async {
+    final data = await _supabase
+        .from('restaurants')
+        .select()
+        .eq('id', restaurantId)
+        .single();
+    return data != null ? RestaurantModel.fromMap(data) : null;
+  }
+
+  Future<List<RestaurantModel>> getAllRestaurants() async {
+    try {
+      debugPrint('Restoranlar veritabanından yükleniyor...');
+      final data = await _supabase.from('restaurants').select();
+      debugPrint('Veritabanından gelen ham veri: $data');
+      return (data as List)
+          .map((restaurant) => RestaurantModel.fromMap(restaurant))
+          .toList();
+    } catch (e) {
+      debugPrint('Restoranlar yüklenirken hata: $e');
+      throw Exception('Restoranlar yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<RestaurantModel>> getRestaurantsByCategory(
+      String category) async {
+    final data = await _supabase
+        .from('restaurants')
+        .select()
+        .contains('categories', [category]);
+    return data.map((doc) => RestaurantModel.fromMap(doc)).toList();
+  }
+
+  Future<void> updateRestaurant(
+      String restaurantId, Map<String, dynamic> data) async {
+    await _supabase.from('restaurants').update(data).eq('id', restaurantId);
+  }
+
+  Future<void> addRestaurant(RestaurantModel restaurant) async {
+    try {
+      final restaurantData = restaurant.toMap();
+      restaurantData.remove('owner_type');
+      print('Eklenecek restoran verisi: $restaurantData');
+
+      await _supabase.from('restaurants').insert(restaurantData);
+      print('Restoran başarıyla eklendi');
+    } catch (e) {
+      print('Restoran eklenirken hata: $e');
+      throw Exception('Restoran eklenirken bir hata oluştu: ${e.toString()}');
+    }
+  }
+
+  Future<void> updateRestaurantData(RestaurantModel restaurant) async {
+    try {
+      final restaurantData = restaurant.toMap();
+      restaurantData.remove('owner_type');
+
+      await _supabase
+          .from('restaurants')
+          .update(restaurantData)
+          .eq('id', restaurant.id);
+    } catch (e) {
+      throw Exception('Restoran güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  // Favoriler İşlemleri
+  Future<void> toggleFavorite(String userId, String restaurantId) async {
+    final data = await _supabase
+        .from('users')
+        .select('favorites')
+        .eq('id', userId)
+        .single();
+
+    if (data != null) {
+      final favorites = List<String>.from(data['favorites'] ?? []);
+      if (favorites.contains(restaurantId)) {
+        favorites.remove(restaurantId);
+      } else {
+        favorites.add(restaurantId);
+      }
+      await _supabase
+          .from('users')
+          .update({'favorites': favorites}).eq('id', userId);
+    }
+  }
+
+  // Arama İşlemleri
+  Future<List<RestaurantModel>> searchRestaurants(String query) async {
+    final data =
+        await _supabase.from('restaurants').select().ilike('name', '%$query%');
+    return data.map((doc) => RestaurantModel.fromMap(doc)).toList();
+  }
+
+  // Menü Öğeleri İşlemleri
+  Future<void> createMenuItem(MenuItemModel menuItem) async {
+    try {
+      await _supabase.from('menu_items').insert(menuItem.toJson());
+    } catch (e) {
+      throw Exception('Menü öğesi eklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> updateMenuItem(String itemId, MenuItemModel menuItem) async {
+    try {
+      await _supabase
+          .from('menu_items')
+          .update(menuItem.toJson())
+          .eq('id', itemId);
+    } catch (e) {
+      throw Exception('Menü öğesi güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> deleteMenuItem(String itemId) async {
+    try {
+      print('Silinecek menü öğesi ID: $itemId');
+
+      // Önce öğenin var olduğunu kontrol edelim
+      final item =
+          await _supabase.from('menu_items').select().eq('id', itemId).single();
+
+      print('Silinecek öğe bulundu: $item');
+
+      if (item == null) {
+        throw Exception('Silinecek menü öğesi bulunamadı');
+      }
+
+      // Silme işlemini gerçekleştirelim
+      await _supabase.from('menu_items').delete().eq('id', itemId);
+
+      print('Silme işlemi başarılı');
+    } catch (e, stackTrace) {
+      print('Menü öğesi silinirken hata: $e');
+      print('Hata detayı: $stackTrace');
+      throw Exception('Menü öğesi silinirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<MenuItemModel>> getMenuItems(String restaurantId) async {
+    try {
+      final data = await _supabase
+          .from('menu_items')
+          .select()
+          .eq('restaurant_id', restaurantId);
+      return (data as List)
+          .map((item) => MenuItemModel.fromJson(item))
+          .toList();
+    } catch (e) {
+      throw Exception('Menü öğeleri yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<MenuItemModel>> getMenuItemsByCategory(
+      String restaurantId, MenuCategory category) async {
+    try {
+      final data = await _supabase
+          .from('menu_items')
+          .select()
+          .eq('restaurant_id', restaurantId)
+          .eq('category', category.toString().split('.').last);
+      return (data as List)
+          .map((item) => MenuItemModel.fromJson(item))
+          .toList();
+    } catch (e) {
+      throw Exception('Menü öğeleri yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getRestaurantMenus(
+      String restaurantId) async {
+    try {
+      final menuItems = await getMenuItems(restaurantId);
+      return menuItems
+          .map((item) => {
+                'id': item.id,
+                'name': item.name,
+                'description': item.description,
+                'price': item.price,
+                'category': item.category.toString().split('.').last,
+                'image_url': item.imageUrl,
+                'is_available': item.isAvailable,
+              })
+          .toList();
+    } catch (e) {
+      throw Exception('Restoran menüleri yüklenirken bir hata oluştu: $e');
+    }
+  }
+}
