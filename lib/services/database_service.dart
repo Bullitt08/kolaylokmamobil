@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../models/user_model.dart';
 import '../models/restaurant_model.dart';
 import '../models/menu_item_model.dart';
@@ -20,6 +21,72 @@ class DatabaseService {
 
   Future<void> updateUser(String userId, Map<String, dynamic> data) async {
     await _supabase.from('users').update(data).eq('id', userId);
+  }
+
+  Future<void> updateUserProfile(UserModel user) async {
+    try {
+      await _supabase.from('users').update({
+        'name': user.name,
+        'surname': user.surname,
+        'phone_number': user.phoneNumber,
+        'address': user.address,
+      }).eq('id', user.id);
+    } catch (e) {
+      throw Exception('Kullanıcı profili güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> updatePassword(
+      String currentPassword, String newPassword) async {
+    try {
+      final response = await _supabase.auth.updateUser(
+        UserAttributes(
+          password: newPassword,
+        ),
+      );
+
+      if (response.user == null) {
+        throw Exception('Şifre güncellenemedi');
+      }
+    } catch (e) {
+      throw Exception('Şifre güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<String> uploadProfileImage(String userId, String filePath) async {
+    try {
+      final fileExt = filePath.split('.').last;
+      final fileName = 'profile_$userId.$fileExt';
+      final storageResponse = await _supabase.storage
+          .from('profile_images')
+          .upload(fileName, File(filePath));
+
+      final imageUrl =
+          _supabase.storage.from('profile_images').getPublicUrl(fileName);
+
+      // Kullanıcı profilini güncelle
+      await _supabase
+          .from('users')
+          .update({'profile_image_url': imageUrl}).eq('id', userId);
+
+      return imageUrl;
+    } catch (e) {
+      throw Exception('Profil fotoğrafı yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> deleteProfileImage(String userId, String imageUrl) async {
+    try {
+      final fileName = imageUrl.split('/').last;
+      await _supabase.storage.from('profile_images').remove([fileName]);
+
+      // Kullanıcı profilinden fotoğrafı kaldır
+      await _supabase
+          .from('users')
+          .update({'profile_image_url': null}).eq('id', userId);
+    } catch (e) {
+      throw Exception('Profil fotoğrafı silinirken bir hata oluştu: $e');
+    }
   }
 
   // Restoran İşlemleri
@@ -89,6 +156,21 @@ class DatabaseService {
           .eq('id', restaurant.id);
     } catch (e) {
       throw Exception('Restoran güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> deleteRestaurant(String restaurantId) async {
+    try {
+      // Önce restoranın menü öğelerini silelim
+      final menuItems = await getMenuItems(restaurantId);
+      for (var item in menuItems) {
+        await deleteMenuItem(item.id);
+      }
+
+      // Sonra restoranı silelim
+      await _supabase.from('restaurants').delete().eq('id', restaurantId);
+    } catch (e) {
+      throw Exception('Restoran silinirken bir hata oluştu: $e');
     }
   }
 
