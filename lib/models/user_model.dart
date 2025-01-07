@@ -16,6 +16,7 @@ class UserModel {
   final DateTime createdAt;
   final UserType userType;
   final String? restaurantId;
+  final String? profileImageUrl;
 
   String get fullName => '$name $surname';
 
@@ -31,6 +32,7 @@ class UserModel {
     DateTime? createdAt,
     required this.userType,
     this.restaurantId,
+    this.profileImageUrl,
   })  : this.phoneNumber = phoneNumber ?? '',
         this.address = address ?? '',
         this.favorites = favorites ?? [],
@@ -49,6 +51,7 @@ class UserModel {
       'created_at': createdAt.toIso8601String(),
       'user_type': userType.toString().split('.').last,
       'restaurant_id': restaurantId,
+      'profile_image_url': profileImageUrl,
     };
   }
 
@@ -69,6 +72,7 @@ class UserModel {
         orElse: () => UserType.normal,
       ),
       restaurantId: map['restaurant_id'],
+      profileImageUrl: map['profile_image_url'],
     );
   }
 

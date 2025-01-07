@@ -4,9 +4,32 @@ import '../models/user_model.dart';
 import 'login_page.dart';
 import '../main.dart';
 import 'admin_panel.dart';
+import 'edit_profile_page.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  Widget _buildProfileImage(UserModel userData) {
+    return CircleAvatar(
+      radius: 50,
+      backgroundColor: Colors.blue,
+      backgroundImage: userData.profileImageUrl != null
+          ? NetworkImage(userData.profileImageUrl!)
+          : null,
+      child: userData.profileImageUrl == null
+          ? const Icon(
+              Icons.person,
+              size: 50,
+              color: Colors.white,
+            )
+          : null,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,17 +129,7 @@ class ProfilePage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             // Profil fotoğrafı
-            const Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.blue,
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            Center(child: _buildProfileImage(userData)),
             const SizedBox(height: 24),
             // Kullanıcı bilgileri
             ListTile(
@@ -139,15 +152,26 @@ class ProfilePage extends StatelessWidget {
             ),
             const Divider(),
             const ListTile(
-              leading: Icon(Icons.security),
-              title: Text('Güvenlik'),
-              trailing: Icon(Icons.chevron_right),
-            ),
-            const Divider(),
-            const ListTile(
               leading: Icon(Icons.help),
               title: Text('Yardım'),
               trailing: Icon(Icons.chevron_right),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Hesabımı Düzenle'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfilePage(user: userData),
+                  ),
+                );
+                if (result == true) {
+                  setState(() {});
+                }
+              },
             ),
             const Divider(),
             if (userData.isAdmin || userData.isRestaurant)

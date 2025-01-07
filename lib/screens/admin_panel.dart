@@ -113,6 +113,59 @@ class _AdminPanelState extends State<AdminPanel> {
                         },
                         tooltip: 'Düzenle',
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Restoranı Sil'),
+                              content: const Text(
+                                  'Bu restoranı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('İptal'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Sil'),
+                                  style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirmed == true && mounted) {
+                            try {
+                              await _databaseService
+                                  .deleteRestaurant(restaurant.id);
+                              _loadRestaurants();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Restoran başarıyla silindi'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        'Silme işlemi başarısız: ${e.toString()}'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                        tooltip: 'Sil',
+                      ),
                     ],
                   ),
                 );
