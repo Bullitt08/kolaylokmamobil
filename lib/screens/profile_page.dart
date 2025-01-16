@@ -17,7 +17,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildProfileImage(UserModel userData) {
     return CircleAvatar(
       radius: 50,
-      backgroundColor: Colors.blue,
+      backgroundColor: Color(0xFF8A0C27),
       backgroundImage: userData.profileImageUrl != null
           ? NetworkImage(userData.profileImageUrl!)
           : null,

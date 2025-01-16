@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_page.dart';
 import 'screens/search_page.dart';
 import 'screens/profile_page.dart';
-import 'screens/auth_page.dart';
 import 'services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'screens/filtered_results_page.dart';
@@ -31,9 +30,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'KolayLokma',
+      title: 'Kolaylokma',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Color(0xFF8A0C27),
       ),
       home: const LoadingScreen(),
     );
@@ -149,29 +148,47 @@ class _MainScreenState extends State<MainScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Filtreler'),
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(color: Color(0xFF8A0C27), width: 2.0),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              backgroundColor: const Color(0xFFEDEFE8),
+              title: Center(
+                child: Text(
+                  'Filtreler',
+                  style: TextStyle(color: Color(0xFF8A0C27), fontWeight: FontWeight.bold,),
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Menü İçeriği Arama
-                    const Text('Menü İçeriği Ara'),
+                    const Text('Menü İçeriği Ara',
+                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                    ),
+                    const SizedBox(height: 4),
                     TextField(
                       decoration: const InputDecoration(
                         hintText: 'Örn: Adana kebap, pide, lahmacun...',
-                        prefixIcon: Icon(Icons.search),
+                        prefixIcon: Icon(Icons.search, color: Color(0xFF8A0C27)),
                         border: OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xFF8A0C27)),
+                        ),
                       ),
                       onChanged: (value) {
                         setState(() => _menuSearch = value);
                       },
                     ),
-                    const Divider(),
-
+                    const SizedBox(height: 16),
                     // Mesafe Filtresi
-                    const Text('Maksimum Mesafe (km)'),
+                    const Text('Maksimum Mesafe (km)',
+                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                    ),
                     Slider(
+                      activeColor: const Color(0xFF8A0C27),
                       value: _maxDistance,
                       min: 1,
                       max: 50,
@@ -181,11 +198,13 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _maxDistance = value);
                       },
                     ),
-                    const Divider(),
-
+                    const SizedBox(height: 16),
                     // Fiyat Aralığı Filtresi
-                    const Text('Menü Fiyat Aralığı (₺)'),
+                    const Text('Menü Fiyat Aralığı (₺)',
+                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                    ),
                     RangeSlider(
+                      activeColor: const Color(0xFF8A0C27),
                       values: _priceRange,
                       min: 0,
                       max: 1000,
@@ -198,11 +217,13 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _priceRange = values);
                       },
                     ),
-                    const Divider(),
-
+                    const SizedBox(height: 16),
                     // Minimum Değerlendirme Filtresi
-                    const Text('Minimum Değerlendirme'),
+                    const Text('Minimum Değerlendirme',
+                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                    ),
                     Slider(
+                      activeColor: const Color(0xFF8A0C27),
                       value: _minRating,
                       min: 0,
                       max: 5,
@@ -212,25 +233,34 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _minRating = value);
                       },
                     ),
-                    const Divider(),
-
+                    const SizedBox(height: 16),
                     // Sadece Açık Restoranlar
                     SwitchListTile(
-                      title: const Text('Sadece Açık Restoranlar'),
+                      activeColor: const Color(0xFF8A0C27),
+                      title: const Text('Sadece Açık Restoranlar',
+                          style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                      ),
                       value: _onlyOpen,
                       onChanged: (value) {
                         setState(() => _onlyOpen = value);
                       },
                     ),
-                    const Divider(),
-
+                    const SizedBox(height: 16),
                     // Kategori Filtresi
-                    const Text('Kategoriler'),
+                    const Text('Kategoriler',
+                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                    ),
                     Wrap(
                       spacing: 8.0,
                       children: [
                         FilterChip(
-                          label: const Text('Kebap'),
+                          label: Text(
+                            'Kebap',
+                            style: TextStyle(
+                              color: _selectedCategories.contains('Kebap') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                            ),
+                          ),
+                          selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Kebap'),
                           onSelected: (selected) {
                             setState(() {
@@ -243,7 +273,13 @@ class _MainScreenState extends State<MainScreen> {
                           },
                         ),
                         FilterChip(
-                          label: const Text('Pide'),
+                          label: Text(
+                              'Pide',
+                            style: TextStyle(
+                              color: _selectedCategories.contains('Pide') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                            ),
+                          ),
+                          selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Pide'),
                           onSelected: (selected) {
                             setState(() {
@@ -256,7 +292,13 @@ class _MainScreenState extends State<MainScreen> {
                           },
                         ),
                         FilterChip(
-                          label: const Text('Döner'),
+                          label: Text(
+                            'Döner',
+                            style: TextStyle(
+                              color: _selectedCategories.contains('Döner') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                            ),
+                          ),
+                          selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Döner'),
                           onSelected: (selected) {
                             setState(() {
@@ -269,7 +311,14 @@ class _MainScreenState extends State<MainScreen> {
                           },
                         ),
                         FilterChip(
-                          label: const Text('Lahmacun'),
+                          label: Text(
+                            'Lahmacun',
+                            style: TextStyle(
+                              color: _selectedCategories.contains('Lahmacun') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                            ),
+                          ),
+
+                          selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Lahmacun'),
                           onSelected: (selected) {
                             setState(() {
@@ -277,7 +326,7 @@ class _MainScreenState extends State<MainScreen> {
                                 _selectedCategories.add('Lahmacun');
                               } else {
                                 _selectedCategories.remove('Lahmacun');
-                              }
+                              };
                             });
                           },
                         ),
@@ -289,9 +338,14 @@ class _MainScreenState extends State<MainScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('İptal'),
+                  child: const Text('İptal',
+                      style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                  ),
                 ),
                 TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(const Color(0xFF8A0C27)),
+                  ),
                   onPressed: () {
                     final filters = {
                       'maxDistance': _maxDistance,
@@ -303,7 +357,11 @@ class _MainScreenState extends State<MainScreen> {
                     };
                     Navigator.pop(context, filters);
                   },
-                  child: const Text('Uygula'),
+                  child: const Text(
+                    'Uygula',
+                    style: TextStyle(color: Colors.white , fontWeight: FontWeight.bold ,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -313,7 +371,7 @@ class _MainScreenState extends State<MainScreen> {
     ).then((filters) {
       if (filters != null && _homePageKey.currentState != null) {
         _homePageKey.currentState!.applyFiltersAndShowResults(filters).then(
-          (filteredRestaurants) {
+              (filteredRestaurants) {
             if (mounted && filteredRestaurants != null) {
               Navigator.push(
                 context,
@@ -330,6 +388,9 @@ class _MainScreenState extends State<MainScreen> {
       }
     });
   }
+
+
+
 
   void _onItemTapped(int index) {
     if (index == 1) {
@@ -383,17 +444,17 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'KolayLokma',
+          'Kolaylokma',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF8A0C27),
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFFEDEFE8),
         elevation: 2,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            icon: const Icon(Icons.notifications_outlined, color: Color(0xFF8A0C27)),
             onPressed: () {
               // TODO: Bildirimler sayfasına yönlendir
               ScaffoldMessenger.of(context).showSnackBar(
@@ -426,6 +487,9 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
+        selectedItemColor: Color(0xFF8A0C27),
+        backgroundColor: Colors.white,
+        unselectedItemColor: Color(0xFFD1CEBD),
       ),
     );
   }
