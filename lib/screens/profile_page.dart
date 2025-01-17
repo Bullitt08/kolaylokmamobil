@@ -34,9 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hesabım'),
-      ),
+      backgroundColor: Color(0xFFEDEFE8),
       body: StreamBuilder<bool>(
         stream: AuthService().authStateChanges,
         builder: (context, snapshot) {
@@ -64,12 +62,13 @@ class _ProfilePageState extends State<ProfilePage> {
           const Icon(
             Icons.account_circle,
             size: 100,
-            color: Colors.grey,
+            color: Color(0xFFA80C27),
           ),
           const SizedBox(height: 16),
           const Text(
             'Giriş yapmanız gerekiyor',
             style: TextStyle(
+              color: Color(0xFFA80C27),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -79,11 +78,12 @@ class _ProfilePageState extends State<ProfilePage> {
             'Profil bilgilerinizi görüntülemek için\nlütfen giriş yapın',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.grey,
+              color: Color(0xFFA80C27),
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
+
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -93,14 +93,18 @@ class _ProfilePageState extends State<ProfilePage> {
               );
             },
             style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8A0C27),
               padding: const EdgeInsets.symmetric(
                 horizontal: 32,
                 vertical: 16,
               ),
             ),
-            child: const Text(
-              'Giriş Yap',
-              style: TextStyle(fontSize: 16),
+            child: const Text('Giriş Yap',
+              style: TextStyle(
+                color: Color(0xFFEDEFE8),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
         ],
@@ -211,6 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: const Icon(Icons.exit_to_app),
                 label: const Text('Çıkış Yap'),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor:Color(0xFF8A0C27),
                   minimumSize: const Size(double.infinity, 50),
                 ),
               ),
