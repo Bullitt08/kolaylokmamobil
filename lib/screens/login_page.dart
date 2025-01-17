@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: Color(0xFF8A0C27),
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
             ),
@@ -79,7 +79,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFEDEFE8),
       appBar: AppBar(
+        backgroundColor: Color(0xFFEDEFE8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pushReplacement(
@@ -87,7 +89,10 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(builder: (context) => const MainScreen()),
           ),
         ),
-        title: const Text('Giriş Yap'),
+        title: Image.asset(
+          'web/icons/logo.png',
+          height: 40,
+        ),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -102,18 +107,20 @@ class _LoginPageState extends State<LoginPage> {
               const Icon(
                 Icons.restaurant_menu,
                 size: 80,
-                color: Colors.blue,
+                color: Color(0xFF8A0C27),
               ),
               const SizedBox(height: 16),
               const Text(
-                'KolayLokma',
+                'Giriş Yap',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 48,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF8A0C27),
                 ),
               ),
               const SizedBox(height: 32),
+
               // E-posta alanı
               TextFormField(
                 controller: _emailController,
@@ -121,7 +128,17 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: const InputDecoration(
                   labelText: 'E-posta',
                   prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                    borderSide: BorderSide(color: Color(0xFF8A0C27)),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -133,7 +150,9 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 16),
+
               // Şifre alanı
               TextFormField(
                 controller: _passwordController,
@@ -151,7 +170,17 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     },
                   ),
-                  border: const OutlineInputBorder(),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                  ),
+                  enabledBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                    borderSide: BorderSide(color: Color(0xFF8A0C27)),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -163,41 +192,82 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
+
+
               const SizedBox(height: 24),
+
               // Giriş yap butonu
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: const Color(0xFF8A0C27),
                 ),
                 child: _isLoading
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
                     : const Text(
-                        'Giriş Yap',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                  'Giriş Yap',
+                  style: TextStyle(
+                    color: Color(0xFFEDEFE8),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
+
               const SizedBox(height: 16),
-              // Kayıt ol butonu
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterPage(),
+
+              //kayıt olun butonu
+              Center(
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    text: 'Hesabın yok mu? ',
+                    style: const TextStyle(
+                      color: Color(0xFF8A0C27),
+                      fontWeight: FontWeight.normal,
+                      fontSize: 16,
                     ),
-                  );
-                },
-                child: const Text('Hesabınız yok mu? Kayıt olun'),
+                    children: [
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.baseline,
+                        baseline: TextBaseline.alphabetic,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterPage(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Kayıt Ol',
+                            style: TextStyle(
+                              color: Color(0xFF8A0C27),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size(0, 0),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+
+
             ],
           ),
         ),

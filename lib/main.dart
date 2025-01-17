@@ -359,7 +359,7 @@ class _MainScreenState extends State<MainScreen> {
                   },
                   child: const Text(
                     'Uygula',
-                    style: TextStyle(color: Colors.white , fontWeight: FontWeight.bold ,
+                    style: TextStyle(color: Color(0xFFEDEFE8) , fontWeight: FontWeight.bold ,
                     ),
                   ),
                 ),
@@ -443,12 +443,9 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Kolaylokma',
-          style: TextStyle(
-            color: Color(0xFF8A0C27),
-            fontWeight: FontWeight.bold,
-          ),
+        title: Image.asset(
+          'web/icons/logo.png',
+          height: 40,
         ),
         backgroundColor: Color(0xFFEDEFE8),
         elevation: 2,
@@ -488,8 +485,7 @@ class _MainScreenState extends State<MainScreen> {
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Color(0xFF8A0C27),
-        backgroundColor: Colors.white,
-        unselectedItemColor: Color(0xFFD1CEBD),
+        backgroundColor: Color(0xFFEDEFE8),
       ),
     );
   }
