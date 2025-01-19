@@ -108,10 +108,10 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 32),
-                  const Icon(
-                    Icons.restaurant_menu,
-                    size: 80,
-                    color: Color(0xFF8A0C27),
+
+                  Image.asset(
+                    'web/icons/login.png',
+                    height: 200,
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -230,6 +230,10 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 );
                               },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size(0, 0),
+                              ),
                               child: const Text(
                                 'Kayıt Ol',
                                 style: TextStyle(
@@ -237,10 +241,6 @@ class _LoginPageState extends State<LoginPage> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
-                              ),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size(0, 0),
                               ),
                             ),
                           ),
