@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Kolaylokma',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Color(0xFF8A0C27),
       ),
@@ -156,7 +157,10 @@ class _MainScreenState extends State<MainScreen> {
               title: Center(
                 child: Text(
                   'Filtreler',
-                  style: TextStyle(color: Color(0xFF8A0C27), fontWeight: FontWeight.bold,),
+                  style: TextStyle(
+                    color: Color(0xFF8A0C27),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               content: SingleChildScrollView(
@@ -166,13 +170,15 @@ class _MainScreenState extends State<MainScreen> {
                   children: [
                     // Menü İçeriği Arama
                     const Text('Menü İçeriği Ara',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                    ),
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27),
+                            fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     TextField(
                       decoration: const InputDecoration(
                         hintText: 'Örn: Adana kebap, pide, lahmacun...',
-                        prefixIcon: Icon(Icons.search, color: Color(0xFF8A0C27)),
+                        prefixIcon:
+                            Icon(Icons.search, color: Color(0xFF8A0C27)),
                         border: OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFF8A0C27)),
@@ -185,8 +191,9 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(height: 16),
                     // Mesafe Filtresi
                     const Text('Maksimum Mesafe (km)',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                    ),
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27),
+                            fontWeight: FontWeight.bold)),
                     Slider(
                       activeColor: const Color(0xFF8A0C27),
                       value: _maxDistance,
@@ -201,8 +208,9 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(height: 16),
                     // Fiyat Aralığı Filtresi
                     const Text('Menü Fiyat Aralığı (₺)',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                    ),
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27),
+                            fontWeight: FontWeight.bold)),
                     RangeSlider(
                       activeColor: const Color(0xFF8A0C27),
                       values: _priceRange,
@@ -220,8 +228,9 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(height: 16),
                     // Minimum Değerlendirme Filtresi
                     const Text('Minimum Değerlendirme',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                    ),
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27),
+                            fontWeight: FontWeight.bold)),
                     Slider(
                       activeColor: const Color(0xFF8A0C27),
                       value: _minRating,
@@ -238,8 +247,9 @@ class _MainScreenState extends State<MainScreen> {
                     SwitchListTile(
                       activeColor: const Color(0xFF8A0C27),
                       title: const Text('Sadece Açık Restoranlar',
-                          style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                      ),
+                          style: TextStyle(
+                              color: Color(0xFF8A0C27),
+                              fontWeight: FontWeight.bold)),
                       value: _onlyOpen,
                       onChanged: (value) {
                         setState(() => _onlyOpen = value);
@@ -248,8 +258,9 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(height: 16),
                     // Kategori Filtresi
                     const Text('Kategoriler',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                    ),
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27),
+                            fontWeight: FontWeight.bold)),
                     Wrap(
                       spacing: 8.0,
                       children: [
@@ -257,7 +268,9 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                             'Kebap',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Kebap') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Kebap')
+                                  ? const Color(0xFFEDEFE8)
+                                  : const Color(0xFF8A0C27),
                             ),
                           ),
                           selectedColor: const Color(0xFF8A0C27),
@@ -274,9 +287,11 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                         FilterChip(
                           label: Text(
-                              'Pide',
+                            'Pide',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Pide') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Pide')
+                                  ? const Color(0xFFEDEFE8)
+                                  : const Color(0xFF8A0C27),
                             ),
                           ),
                           selectedColor: const Color(0xFF8A0C27),
@@ -295,7 +310,9 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                             'Döner',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Döner') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Döner')
+                                  ? const Color(0xFFEDEFE8)
+                                  : const Color(0xFF8A0C27),
                             ),
                           ),
                           selectedColor: const Color(0xFF8A0C27),
@@ -314,10 +331,11 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                             'Lahmacun',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Lahmacun') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Lahmacun')
+                                  ? const Color(0xFFEDEFE8)
+                                  : const Color(0xFF8A0C27),
                             ),
                           ),
-
                           selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Lahmacun'),
                           onSelected: (selected) {
@@ -326,7 +344,8 @@ class _MainScreenState extends State<MainScreen> {
                                 _selectedCategories.add('Lahmacun');
                               } else {
                                 _selectedCategories.remove('Lahmacun');
-                              };
+                              }
+                              ;
                             });
                           },
                         ),
@@ -339,12 +358,14 @@ class _MainScreenState extends State<MainScreen> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('İptal',
-                      style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                  ),
+                      style: TextStyle(
+                          color: Color(0xFF8A0C27),
+                          fontWeight: FontWeight.bold)),
                 ),
                 TextButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(const Color(0xFF8A0C27)),
+                    backgroundColor:
+                        MaterialStateProperty.all(const Color(0xFF8A0C27)),
                   ),
                   onPressed: () {
                     final filters = {
@@ -359,7 +380,9 @@ class _MainScreenState extends State<MainScreen> {
                   },
                   child: const Text(
                     'Uygula',
-                    style: TextStyle(color: Color(0xFFEDEFE8) , fontWeight: FontWeight.bold ,
+                    style: TextStyle(
+                      color: Color(0xFFEDEFE8),
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -371,7 +394,7 @@ class _MainScreenState extends State<MainScreen> {
     ).then((filters) {
       if (filters != null && _homePageKey.currentState != null) {
         _homePageKey.currentState!.applyFiltersAndShowResults(filters).then(
-              (filteredRestaurants) {
+          (filteredRestaurants) {
             if (mounted && filteredRestaurants != null) {
               Navigator.push(
                 context,
@@ -388,9 +411,6 @@ class _MainScreenState extends State<MainScreen> {
       }
     });
   }
-
-
-
 
   void _onItemTapped(int index) {
     if (index == 1) {
@@ -451,7 +471,8 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 2,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Color(0xFF8A0C27)),
+            icon: const Icon(Icons.notifications_outlined,
+                color: Color(0xFF8A0C27)),
             onPressed: () {
               // TODO: Bildirimler sayfasına yönlendir
               ScaffoldMessenger.of(context).showSnackBar(
