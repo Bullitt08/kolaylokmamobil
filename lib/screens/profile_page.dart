@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kolaylokma/customs/customicon.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import 'login_page.dart';
@@ -82,30 +84,15 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LoginPage(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8A0C27),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 16,
-              ),
-            ),
-            child: const Text('Giriş Yap',
-              style: TextStyle(
-                color: Color(0xFFEDEFE8),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+          CustomButton(text: 'Giriş Yap',
+              onPressed: (){
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                );
+                },
           ),
         ],
       ),
@@ -135,34 +122,35 @@ class _ProfilePageState extends State<ProfilePage> {
             // Profil fotoğrafı
             Center(child: _buildProfileImage(userData)),
             const SizedBox(height: 24),
+            const Divider(),
             // Kullanıcı bilgileri
             ListTile(
-              leading: const Icon(Icons.person),
+              leading: CustomIcon(iconData:Icons.person),
               title: const Text('Ad Soyad'),
               subtitle: Text(userData.fullName),
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.email),
+              leading: CustomIcon(iconData:Icons.email),
               title: const Text('E-posta'),
               subtitle: Text(userData.email),
             ),
             const Divider(),
             // Ayarlar
             const ListTile(
-              leading: Icon(Icons.notifications),
+              leading: CustomIcon(iconData: Icons.notifications),
               title: Text('Bildirimler'),
               trailing: Icon(Icons.chevron_right),
             ),
             const Divider(),
             const ListTile(
-              leading: Icon(Icons.help),
+              leading: CustomIcon(iconData:Icons.help),
               title: Text('Yardım'),
               trailing: Icon(Icons.chevron_right),
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.edit),
+              leading: CustomIcon(iconData:Icons.edit),
               title: const Text('Hesabımı Düzenle'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
@@ -182,7 +170,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.admin_panel_settings),
+                    leading: CustomIcon(iconData:Icons.admin_panel_settings),
                     title: const Text('Restoran Yönetimi'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
@@ -197,29 +185,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Divider(),
                 ],
               ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  await authService.logout();
-                  if (context.mounted) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MainScreen(),
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.exit_to_app),
-                label: const Text('Çıkış Yap'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:Color(0xFF8A0C27),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-              ),
-            ),
+            const SizedBox(height: 24),
+            CustomButton(
+              text: 'Çıkış Yap',
+              onPressed: () async {
+                await authService.logout();
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MainScreen(),
+                    ),
+                  );
+                }
+              },
+            )
           ],
         );
       },

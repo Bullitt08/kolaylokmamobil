@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_page.dart';
 import 'screens/search_page.dart';
@@ -6,13 +7,14 @@ import 'screens/profile_page.dart';
 import 'services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'screens/filtered_results_page.dart';
+import 'package:flutter/widgets.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
     await Supabase.initialize(
-      url: 'https://zxixknpruagqlvxkbhkv.supabase.co', // Supabase proje URL'niz
+      url: 'https://zxixknpruagqlvxkbhkv.supabase.co',
       anonKey:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4aXhrbnBydWFncWx2eGtiaGt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxOTYyOTUsImV4cCI6MjA1MTc3MjI5NX0.8VgXdWPXLEpyMNuoZw24U62TEPnTFM3JC56oOq4LWeI', // Supabase proje API Key'iniz
     );
@@ -336,16 +338,13 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
               actions: [
-                TextButton(
+                CustomButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('İptal',
-                      style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
-                  ),
+                  text: 'İptal',
+                  backgroundColor: Colors.transparent,
+                  textColor: const Color(0xFF8A0C27),
                 ),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(const Color(0xFF8A0C27)),
-                  ),
+                CustomButton(
                   onPressed: () {
                     final filters = {
                       'maxDistance': _maxDistance,
@@ -355,13 +354,9 @@ class _MainScreenState extends State<MainScreen> {
                       'categories': _selectedCategories,
                       'menuSearch': _menuSearch,
                     };
-                    Navigator.pop(context, filters);
+                    Navigator.pop(context,filters);
                   },
-                  child: const Text(
-                    'Uygula',
-                    style: TextStyle(color: Color(0xFFEDEFE8) , fontWeight: FontWeight.bold ,
-                    ),
-                  ),
+                    text: 'Uygula'
                 ),
               ],
             );
@@ -485,6 +480,7 @@ class _MainScreenState extends State<MainScreen> {
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Color(0xFF8A0C27),
+        unselectedItemColor: Colors.black,
         backgroundColor: Color(0xFFEDEFE8),
       ),
     );
