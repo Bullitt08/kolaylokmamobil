@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
 
@@ -170,7 +172,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       children: [
         CircleAvatar(
           radius: 50,
-          backgroundColor: Colors.blue,
+          backgroundColor: Color(0xFF8A0C27),
           backgroundImage: widget.user.profileImageUrl != null
               ? NetworkImage(widget.user.profileImageUrl!)
               : null,
@@ -234,6 +236,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profili Düzenle'),
+        backgroundColor: Color(0xFFEDEFE8),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -278,6 +281,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       decoration: const InputDecoration(
                         labelText: 'Telefon Numarası',
                         border: OutlineInputBorder(),
+                        prefixIcon: CustomIcon(iconData: Icons.phone,),
                       ),
                       keyboardType: TextInputType.phone,
                     ),
@@ -286,6 +290,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       controller: _addressController,
                       decoration: const InputDecoration(
                         labelText: 'Adres',
+                        prefixIcon: CustomIcon(iconData: Icons.location_on,),
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
@@ -296,6 +301,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       'Şifre Değiştir',
                       style: TextStyle(
                         fontSize: 18,
+                        color: Color(0xFF8A0C27),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -304,6 +310,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       controller: _currentPasswordController,
                       decoration: InputDecoration(
                         labelText: 'Mevcut Şifre',
+                        prefixIcon: CustomIcon(iconData: Icons.lock,),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureCurrentPassword
@@ -332,6 +339,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       controller: _newPasswordController,
                       decoration: InputDecoration(
                         labelText: 'Yeni Şifre',
+                        prefixIcon: CustomIcon(iconData: Icons.lock,),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureNewPassword
@@ -362,6 +370,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
                         labelText: 'Yeni Şifre (Tekrar)',
+                        prefixIcon: CustomIcon(iconData: Icons.lock,),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureConfirmPassword
@@ -389,12 +398,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                      child: const Text('Değişiklikleri Kaydet'),
+
+                    CustomButton(text: 'Değişiklikleri Kaydet',
+                        onPressed: _saveChanges,
                     ),
                   ],
                 ),

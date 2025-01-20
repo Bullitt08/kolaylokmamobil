@@ -51,6 +51,7 @@ class _AdminPanelState extends State<AdminPanel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+
         title: const Text('Restoran Yönetimi'),
         actions: [
           IconButton(

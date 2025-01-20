@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kolaylokma/customs/customicon.dart';
 import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customtextformfield.dart';
 import '../services/auth_service.dart';
 import 'register_page.dart';
 import '../main.dart';
@@ -126,24 +127,13 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 32),
 
                   // E-posta alanı
-                  TextFormField(
+                  CustomTextFormField(
                     controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'E-posta',
-                      prefixIcon: CustomIcon(
-                        iconData:Icons.email,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF8A0C27)),
-                      ),
+                    labelText: 'E-posta',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.email,
                     ),
+                    keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Lütfen e-posta adresinizi girin';
@@ -154,38 +144,26 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 16),
-
                   // Şifre alanı
-                  TextFormField(
+                  CustomTextFormField(
                     controller: _passwordController,
-                    obscureText: _obscureText,
-                    decoration: InputDecoration(
-                      labelText: 'Şifre',
-                      prefixIcon: const CustomIcon(
-                        iconData:Icons.lock,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: CustomIcon(
-                           iconData:_obscureText ? Icons.visibility : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureText = !_obscureText;
-                          });
-                        },
-                      ),
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF8A0C27)),
-                      ),
+                    labelText: 'Şifre',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.lock,
                     ),
+                    suffixIcon: IconButton(
+                      icon: CustomIcon(
+                        iconData: _obscureText ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
+                    keyboardType: TextInputType.visiblePassword,
+                    obscureText: _obscureText,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Lütfen şifrenizi girin';
@@ -195,6 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                       }
                       return null;
                     },
+                    borderColor: Colors.black,
                   ),
 
                   const SizedBox(height: 24),

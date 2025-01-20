@@ -264,15 +264,11 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Kebap'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Kebap');
-                              } else {
-                                _selectedCategories.remove('Kebap');
-                              }
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Kebap')
+                                : _selectedCategories.remove('Kebap');
+                          }),
                         ),
                         FilterChip(
                           label: Text(
@@ -283,15 +279,11 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Pide'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Pide');
-                              } else {
-                                _selectedCategories.remove('Pide');
-                              }
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Pide')
+                                : _selectedCategories.remove('Pide');
+                          }),
                         ),
                         FilterChip(
                           label: Text(
@@ -302,15 +294,11 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                           selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Döner'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Döner');
-                              } else {
-                                _selectedCategories.remove('Döner');
-                              }
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Döner')
+                                : _selectedCategories.remove('Döner');
+                          }),
                         ),
                         FilterChip(
                           label: Text(
@@ -322,15 +310,11 @@ class _MainScreenState extends State<MainScreen> {
 
                           selectedColor: const Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Lahmacun'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Lahmacun');
-                              } else {
-                                _selectedCategories.remove('Lahmacun');
-                              };
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Lahmacun')
+                                : _selectedCategories.remove('Lahmacun');
+                          }),
                         ),
                       ],
                     ),
