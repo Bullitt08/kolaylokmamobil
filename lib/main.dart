@@ -272,10 +272,11 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                             'Kebap',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Kebap') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Kebap') ? Color(0xFFEDEFE8) : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          selectedColor: Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
                           selected: _selectedCategories.contains('Kebap'),
                           onSelected: (selected) => setState(() {
                             selected
@@ -287,10 +288,11 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                               'Pide',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Pide') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Pide') ? Color(0xFFEDEFE8) : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
+                          selectedColor:  Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Pide'),
                           onSelected: (selected) => setState(() {
                             selected
@@ -302,10 +304,11 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                             'Döner',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Döner') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Döner') ? Color(0xFFEDEFE8) : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
+                          selectedColor: Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Döner'),
                           onSelected: (selected) => setState(() {
                             selected
@@ -317,11 +320,11 @@ class _MainScreenState extends State<MainScreen> {
                           label: Text(
                             'Lahmacun',
                             style: TextStyle(
-                              color: _selectedCategories.contains('Lahmacun') ? const Color(0xFFEDEFE8) : const Color(0xFF8A0C27),
+                              color: _selectedCategories.contains('Lahmacun') ? Color(0xFFEDEFE8) : Color(0xFF8A0C27),
                             ),
                           ),
-
-                          selectedColor: const Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
+                          selectedColor: Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Lahmacun'),
                           onSelected: (selected) => setState(() {
                             selected
@@ -339,7 +342,7 @@ class _MainScreenState extends State<MainScreen> {
                   onPressed: () => Navigator.pop(context),
                   text: 'İptal',
                   backgroundColor: Colors.transparent,
-                  textColor: const Color(0xFF8A0C27),
+                  textColor: Color(0xFF8A0C27),
                 ),
                 CustomButton(
                   onPressed: () {

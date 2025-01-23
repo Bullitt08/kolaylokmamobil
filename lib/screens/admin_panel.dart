@@ -135,6 +135,10 @@ class _AdminPanelState extends State<AdminPanel> {
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              side: const BorderSide(color: Color(0xFF8A0C27), width: 2.0),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
                             backgroundColor: Color(0xFFEDEFE8),
                             title: const Text(
                               'Restoranı Sil',
