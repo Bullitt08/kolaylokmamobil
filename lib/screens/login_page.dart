@@ -96,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
           'web/icons/logo.png',
           height: 40,
         ),
-        elevation: 0,
+        centerTitle: true,
       ),
       body: Stack(
         children: [

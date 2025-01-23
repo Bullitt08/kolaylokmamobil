@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
+import 'package:kolaylokma/customs/customtextformfield.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_page.dart';
 import 'screens/search_page.dart';
@@ -158,7 +160,10 @@ class _MainScreenState extends State<MainScreen> {
               title: Center(
                 child: Text(
                   'Filtreler',
-                  style: TextStyle(color: Color(0xFF8A0C27), fontWeight: FontWeight.bold,),
+                  style: TextStyle(
+                    color: Color(0xFF8A0C27),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               content: SingleChildScrollView(
@@ -168,23 +173,28 @@ class _MainScreenState extends State<MainScreen> {
                   children: [
                     // Menü İçeriği Arama
                     const Text('Menü İçeriği Ara',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27) ,
+                            fontWeight: FontWeight.bold
+                        ),
                     ),
                     const SizedBox(height: 4),
                     TextField(
                       decoration: const InputDecoration(
                         hintText: 'Örn: Adana kebap, pide, lahmacun...',
-                        prefixIcon: Icon(Icons.search, color: Color(0xFF8A0C27)),
+                        prefixIcon: CustomIcon(
+                            iconData:Icons.search,
+                        ),
                         border: OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF8A0C27)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                       ),
                       onChanged: (value) {
                         setState(() => _menuSearch = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Mesafe Filtresi
                     const Text('Maksimum Mesafe (km)',
                         style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
@@ -200,7 +210,7 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _maxDistance = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Fiyat Aralığı Filtresi
                     const Text('Menü Fiyat Aralığı (₺)',
                         style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
@@ -219,7 +229,7 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _priceRange = values);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Minimum Değerlendirme Filtresi
                     const Text('Minimum Değerlendirme',
                         style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
@@ -235,10 +245,11 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _minRating = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Sadece Açık Restoranlar
                     SwitchListTile(
                       activeColor: const Color(0xFF8A0C27),
+                      inactiveThumbColor: Colors.black,
                       title: const Text('Sadece Açık Restoranlar',
                           style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
                       ),
@@ -247,10 +258,12 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _onlyOpen = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Kategori Filtresi
                     const Text('Kategoriler',
-                        style: TextStyle(color: Color(0xFF8A0C27) , fontWeight: FontWeight.bold)
+                        style: TextStyle(
+                            color: Color(0xFF8A0C27) ,
+                            fontWeight: FontWeight.bold),
                     ),
                     Wrap(
                       spacing: 8.0,
@@ -426,8 +439,8 @@ class _MainScreenState extends State<MainScreen> {
           'web/icons/logo.png',
           height: 40,
         ),
+        centerTitle: true,
         backgroundColor: Color(0xFFEDEFE8),
-        elevation: 2,
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Color(0xFF8A0C27)),

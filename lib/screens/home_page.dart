@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:kolaylokma/customs/customicon.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
@@ -409,7 +410,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     const SnackBar(
                                       content: Text(
                                           'Menüler yüklenirken bir hata oluştu'),
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: Color(0xFF8A0C27),
                                     ),
                                   );
                                 }
@@ -421,7 +422,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       width: 20,
                                       height: 20,
                                       decoration: BoxDecoration(
-                                        color: Colors.red,
+                                        color: Color(0xFF8A0C27),
                                         shape: BoxShape.circle,
                                         border: Border.all(
                                           color: Colors.white,
@@ -458,33 +459,42 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   child: Column(
                     children: [
                       FloatingActionButton(
+                        backgroundColor: Color(0xFFEDEFE8),
                         heroTag: "zoomIn",
                         onPressed: () {
                           final currentZoom = mapController.camera.zoom;
                           final center = mapController.camera.center;
                           animatedMapMove(center, currentZoom + 1);
                         },
-                        child: const Icon(Icons.add),
+                        child: const CustomIcon(iconData: Icons.add,
+                          iconColor: Color(0xFF8A0C27),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       FloatingActionButton(
+                        backgroundColor: Color(0xFFEDEFE8),
                         heroTag: "zoomOut",
                         onPressed: () {
                           final currentZoom = mapController.camera.zoom;
                           final center = mapController.camera.center;
                           animatedMapMove(center, currentZoom - 1);
                         },
-                        child: const Icon(Icons.remove),
+                        child: const CustomIcon(iconData: Icons.remove,
+                          iconColor: Color(0xFF8A0C27),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       FloatingActionButton(
+                        backgroundColor: Color(0xFFEDEFE8),
                         heroTag: "myLocation",
                         onPressed: () {
                           if (currentPosition != null) {
                             animatedMapMove(currentPosition!, 15);
                           }
                         },
-                        child: const Icon(Icons.my_location),
+                        child: const CustomIcon(iconData: Icons.my_location,
+                          iconColor: Color(0xFF8A0C27),
+                        ),
                       ),
                     ],
                   ),
