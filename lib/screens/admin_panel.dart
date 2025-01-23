@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
+import 'package:kolaylokma/customs/customtextformfield.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 import '../models/restaurant_model.dart';
@@ -50,12 +53,22 @@ class _AdminPanelState extends State<AdminPanel> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFEDEFE8),
       appBar: AppBar(
-
-        title: const Text('Restoran Yönetimi'),
+        title: const Text(
+          'Restoran Yönetimi',
+          style: TextStyle(
+            color: Color(0xFF8A0C27),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Color(0xFFEDEFE8),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const CustomIcon(
+                iconData: Icons.add,
+            ),
             onPressed: () async {
               final result = await Navigator.push(
                 context,
@@ -73,105 +86,122 @@ class _AdminPanelState extends State<AdminPanel> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: restaurants.length,
-              itemBuilder: (context, index) {
-                final restaurant = restaurants[index];
-                return ListTile(
-                  leading: const Icon(Icons.restaurant),
-                  title: Text(restaurant.name),
-                  subtitle: Text(restaurant.address),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.menu_book),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MenuManagementScreen(
-                                restaurant: restaurant,
+        itemCount: restaurants.length,
+        itemBuilder: (context, index) {
+          final restaurant = restaurants[index];
+          return Column(
+            children: [
+              ListTile(
+                leading: const CustomIcon(iconData: Icons.restaurant),
+                title: Text(restaurant.name),
+                subtitle: Text(restaurant.address),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const CustomIcon(iconData: Icons.menu_book),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MenuManagementScreen(
+                              restaurant: restaurant,
+                            ),
+                          ),
+                        );
+                      },
+                      tooltip: 'Menü Yönetimi',
+                    ),
+                    IconButton(
+                      icon: const CustomIcon(iconData: Icons.edit),
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RestaurantEditScreen(
+                              restaurant: restaurant,
+                            ),
+                          ),
+                        );
+                        if (result == true && mounted) {
+                          _loadRestaurants();
+                        }
+                      },
+                      tooltip: 'Düzenle',
+                    ),
+                    IconButton(
+                      icon: const CustomIcon(iconData: Icons.delete),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: Color(0xFFEDEFE8),
+                            title: const Text(
+                              'Restoranı Sil',
+                              style: TextStyle(
+                                color: Color(0xFF8A0C27),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          );
-                        },
-                        tooltip: 'Menü Yönetimi',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RestaurantEditScreen(
-                                restaurant: restaurant,
+                            content: const Text(
+                              'Bu restoranı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!',
+                              style: TextStyle(
+                                color: Colors.black,
                               ),
                             ),
-                          );
-                          if (result == true && mounted) {
-                            _loadRestaurants();
-                          }
-                        },
-                        tooltip: 'Düzenle',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Restoranı Sil'),
-                              content: const Text(
-                                  'Bu restoranı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('İptal'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Sil'),
-                                  style: TextButton.styleFrom(
-                                      foregroundColor: Colors.red),
-                                ),
-                              ],
-                            ),
-                          );
+                            actions: [
+                              CustomButton(
+                                text: 'İptal',
+                                backgroundColor: Colors.transparent,
+                                textColor: const Color(0xFF8A0C27),
+                                onPressed: () =>
+                                    Navigator.pop(context, false),
+                              ),
+                              CustomButton(
+                                text: 'Sil',
+                                onPressed: () =>
+                                    Navigator.pop(context, true),
+                              ),
+                            ],
+                          ),
+                        );
 
-                          if (confirmed == true && mounted) {
-                            try {
-                              await _databaseService
-                                  .deleteRestaurant(restaurant.id);
-                              _loadRestaurants();
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Restoran başarıyla silindi'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Silme işlemi başarısız: ${e.toString()}'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
+                        if (confirmed == true && mounted) {
+                          try {
+                            await _databaseService
+                                .deleteRestaurant(restaurant.id);
+                            _loadRestaurants();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Restoran başarıyla silindi'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Silme işlemi başarısız: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                             }
                           }
-                        },
-                        tooltip: 'Sil',
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                        }
+                      },
+                      tooltip: 'Sil',
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -279,18 +309,27 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
       appBar: AppBar(
         title: Text(widget.restaurant == null
             ? 'Yeni Restoran Ekle'
-            : 'Restoran Düzenle'),
+            : 'Restoran Düzenle',
+          style: const TextStyle(
+            color: Color(0xFF8A0C27),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFEDEFE8),
       ),
-      body: Form(
+      body:Container(
+        decoration: BoxDecoration(
+          color: Color(0xFFEDEFE8),
+        ),
+        child: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            TextFormField(
+            CustomTextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Restoran Adı',
-              ),
+              labelText: 'Restoran Adı',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Lütfen restoran adını giriniz';
@@ -298,12 +337,11 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                 return null;
               },
             ),
+
             const SizedBox(height: 16),
-            TextFormField(
+            CustomTextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Açıklama',
-              ),
+              labelText: 'Açıklama',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Lütfen açıklama giriniz';
@@ -312,11 +350,9 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            CustomTextFormField(
               controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Adres',
-              ),
+              labelText: 'Adres',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Lütfen adresi giriniz';
@@ -325,11 +361,9 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            CustomTextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Telefon',
-              ),
+              labelText: 'Telefon',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Lütfen telefon numarası giriniz';
@@ -346,7 +380,7 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                     mapController: _mapController,
                     options: MapOptions(
                       initialCenter:
-                          _selectedLocation ?? const LatLng(41.0082, 28.9784),
+                      _selectedLocation ?? const LatLng(41.0082, 28.9784),
                       initialZoom: 13,
                       onTap: (tapPosition, point) {
                         setState(() {
@@ -357,7 +391,7 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                     children: [
                       TileLayer(
                         urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.kolaylokma.app',
                       ),
                       if (_selectedLocation != null)
@@ -367,9 +401,9 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                               point: _selectedLocation!,
                               width: 40,
                               height: 40,
-                              child: const Icon(
-                                Icons.location_on,
-                                color: Colors.red,
+                              child: const CustomIcon(
+                                iconData:  Icons.location_on,
+                                iconColor: Color(0xFF8A0C27),
                                 size: 40,
                               ),
                             ),
@@ -384,6 +418,7 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                   child: Column(
                     children: [
                       FloatingActionButton(
+                        backgroundColor: Color(0xFF8A0C27),
                         heroTag: 'zoomIn',
                         mini: true,
                         onPressed: () {
@@ -393,10 +428,13 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                             currentZoom + 1,
                           );
                         },
-                        child: const Icon(Icons.add),
+                        child: const CustomIcon(iconData: Icons.add,
+                          iconColor: Color(0xFFEDEFE8),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       FloatingActionButton(
+                        backgroundColor: Color(0xFF8A0C27),
                         heroTag: 'zoomOut',
                         mini: true,
                         onPressed: () {
@@ -406,23 +444,28 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                             currentZoom - 1,
                           );
                         },
-                        child: const Icon(Icons.remove),
+                        child: const CustomIcon(iconData: Icons.remove,
+                          iconColor: Color(0xFFEDEFE8),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       FloatingActionButton(
+                        backgroundColor: Color(0xFF8A0C27),
                         heroTag: 'location',
                         mini: true,
                         onPressed:
-                            _isLoadingLocation ? null : _goToUserLocation,
+                        _isLoadingLocation ? null : _goToUserLocation,
                         child: _isLoadingLocation
                             ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.my_location),
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const CustomIcon(iconData: Icons.my_location,
+                          iconColor: Color(0xFFEDEFE8),
+                        ),
                       ),
                     ],
                   ),
@@ -430,7 +473,7 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            CustomButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate() &&
                     _selectedLocation != null) {
@@ -505,12 +548,11 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen> {
                   );
                 }
               },
-              child: Text(
-                widget.restaurant == null ? 'Restoran Ekle' : 'Güncelle',
-              ),
+              text: widget.restaurant == null ? 'Restoran Ekle' : 'Güncelle',
             ),
           ],
         ),
+      ),
       ),
     );
   }
