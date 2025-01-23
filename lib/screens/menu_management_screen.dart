@@ -61,6 +61,10 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFF8A0C27), width: 2.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
         backgroundColor: Color(0xFFEDEFE8),
         title: Text(
             item == null ? 'Yeni Ürün Ekle' : 'Ürünü Düzenle',
@@ -155,6 +159,10 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFF8A0C27), width: 2.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
         backgroundColor: Color(0xFFEDEFE8),
         title: const Text(
         'Ürünü Sil',
