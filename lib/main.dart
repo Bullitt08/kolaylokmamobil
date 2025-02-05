@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
+import 'package:kolaylokma/customs/customtextformfield.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_page.dart';
 import 'screens/search_page.dart';
@@ -6,13 +9,14 @@ import 'screens/profile_page.dart';
 import 'services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'screens/filtered_results_page.dart';
+import 'package:flutter/widgets.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
     await Supabase.initialize(
-      url: 'https://zxixknpruagqlvxkbhkv.supabase.co', // Supabase proje URL'niz
+      url: 'https://zxixknpruagqlvxkbhkv.supabase.co',
       anonKey:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4aXhrbnBydWFncWx2eGtiaGt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxOTYyOTUsImV4cCI6MjA1MTc3MjI5NX0.8VgXdWPXLEpyMNuoZw24U62TEPnTFM3JC56oOq4LWeI', // Supabase proje API Key'iniz
     );
@@ -169,26 +173,29 @@ class _MainScreenState extends State<MainScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Menü İçeriği Arama
-                    const Text('Menü İçeriği Ara',
-                        style: TextStyle(
-                            color: Color(0xFF8A0C27),
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Menü İçeriği Ara',
+                      style: TextStyle(
+                          color: Color(0xFF8A0C27),
+                          fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 4),
                     TextField(
                       decoration: const InputDecoration(
                         hintText: 'Örn: Adana kebap, pide, lahmacun...',
-                        prefixIcon:
-                            Icon(Icons.search, color: Color(0xFF8A0C27)),
+                        prefixIcon: CustomIcon(
+                          iconData: Icons.search,
+                        ),
                         border: OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF8A0C27)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                       ),
                       onChanged: (value) {
                         setState(() => _menuSearch = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Mesafe Filtresi
                     const Text('Maksimum Mesafe (km)',
                         style: TextStyle(
@@ -205,7 +212,7 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _maxDistance = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Fiyat Aralığı Filtresi
                     const Text('Menü Fiyat Aralığı (₺)',
                         style: TextStyle(
@@ -225,7 +232,7 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _priceRange = values);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Minimum Değerlendirme Filtresi
                     const Text('Minimum Değerlendirme',
                         style: TextStyle(
@@ -242,10 +249,11 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _minRating = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Sadece Açık Restoranlar
                     SwitchListTile(
                       activeColor: const Color(0xFF8A0C27),
+                      inactiveThumbColor: Colors.black,
                       title: const Text('Sadece Açık Restoranlar',
                           style: TextStyle(
                               color: Color(0xFF8A0C27),
@@ -255,12 +263,14 @@ class _MainScreenState extends State<MainScreen> {
                         setState(() => _onlyOpen = value);
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const Divider(),
                     // Kategori Filtresi
-                    const Text('Kategoriler',
-                        style: TextStyle(
-                            color: Color(0xFF8A0C27),
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Kategoriler',
+                      style: TextStyle(
+                          color: Color(0xFF8A0C27),
+                          fontWeight: FontWeight.bold),
+                    ),
                     Wrap(
                       spacing: 8.0,
                       children: [
@@ -269,85 +279,72 @@ class _MainScreenState extends State<MainScreen> {
                             'Kebap',
                             style: TextStyle(
                               color: _selectedCategories.contains('Kebap')
-                                  ? const Color(0xFFEDEFE8)
-                                  : const Color(0xFF8A0C27),
+                                  ? Color(0xFFEDEFE8)
+                                  : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          selectedColor: Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
                           selected: _selectedCategories.contains('Kebap'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Kebap');
-                              } else {
-                                _selectedCategories.remove('Kebap');
-                              }
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Kebap')
+                                : _selectedCategories.remove('Kebap');
+                          }),
                         ),
                         FilterChip(
                           label: Text(
                             'Pide',
                             style: TextStyle(
                               color: _selectedCategories.contains('Pide')
-                                  ? const Color(0xFFEDEFE8)
-                                  : const Color(0xFF8A0C27),
+                                  ? Color(0xFFEDEFE8)
+                                  : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
+                          selectedColor: Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Pide'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Pide');
-                              } else {
-                                _selectedCategories.remove('Pide');
-                              }
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Pide')
+                                : _selectedCategories.remove('Pide');
+                          }),
                         ),
                         FilterChip(
                           label: Text(
                             'Döner',
                             style: TextStyle(
                               color: _selectedCategories.contains('Döner')
-                                  ? const Color(0xFFEDEFE8)
-                                  : const Color(0xFF8A0C27),
+                                  ? Color(0xFFEDEFE8)
+                                  : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
+                          selectedColor: Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Döner'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Döner');
-                              } else {
-                                _selectedCategories.remove('Döner');
-                              }
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Döner')
+                                : _selectedCategories.remove('Döner');
+                          }),
                         ),
                         FilterChip(
                           label: Text(
                             'Lahmacun',
                             style: TextStyle(
                               color: _selectedCategories.contains('Lahmacun')
-                                  ? const Color(0xFFEDEFE8)
-                                  : const Color(0xFF8A0C27),
+                                  ? Color(0xFFEDEFE8)
+                                  : Color(0xFF8A0C27),
                             ),
                           ),
-                          selectedColor: const Color(0xFF8A0C27),
+                          checkmarkColor: Color(0xFFEDEFE8),
+                          selectedColor: Color(0xFF8A0C27),
                           selected: _selectedCategories.contains('Lahmacun'),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategories.add('Lahmacun');
-                              } else {
-                                _selectedCategories.remove('Lahmacun');
-                              }
-                              ;
-                            });
-                          },
+                          onSelected: (selected) => setState(() {
+                            selected
+                                ? _selectedCategories.add('Lahmacun')
+                                : _selectedCategories.remove('Lahmacun');
+                          }),
                         ),
                       ],
                     ),
@@ -355,37 +352,25 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
               actions: [
-                TextButton(
+                CustomButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('İptal',
-                      style: TextStyle(
-                          color: Color(0xFF8A0C27),
-                          fontWeight: FontWeight.bold)),
+                  text: 'İptal',
+                  backgroundColor: Colors.transparent,
+                  textColor: Color(0xFF8A0C27),
                 ),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(const Color(0xFF8A0C27)),
-                  ),
-                  onPressed: () {
-                    final filters = {
-                      'maxDistance': _maxDistance,
-                      'priceRange': _priceRange,
-                      'minRating': _minRating,
-                      'onlyOpen': _onlyOpen,
-                      'categories': _selectedCategories,
-                      'menuSearch': _menuSearch,
-                    };
-                    Navigator.pop(context, filters);
-                  },
-                  child: const Text(
-                    'Uygula',
-                    style: TextStyle(
-                      color: Color(0xFFEDEFE8),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                CustomButton(
+                    onPressed: () {
+                      final filters = {
+                        'maxDistance': _maxDistance,
+                        'priceRange': _priceRange,
+                        'minRating': _minRating,
+                        'onlyOpen': _onlyOpen,
+                        'categories': _selectedCategories,
+                        'menuSearch': _menuSearch,
+                      };
+                      Navigator.pop(context, filters);
+                    },
+                    text: 'Uygula'),
               ],
             );
           },
@@ -467,8 +452,8 @@ class _MainScreenState extends State<MainScreen> {
           'web/icons/logo.png',
           height: 40,
         ),
+        centerTitle: true,
         backgroundColor: Color(0xFFEDEFE8),
-        elevation: 2,
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined,
@@ -506,6 +491,7 @@ class _MainScreenState extends State<MainScreen> {
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Color(0xFF8A0C27),
+        unselectedItemColor: Colors.black,
         backgroundColor: Color(0xFFEDEFE8),
       ),
     );

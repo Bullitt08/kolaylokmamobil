@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
 import '../models/menu_item_model.dart';
 import '../models/restaurant_model.dart';
 import '../services/database_service.dart';
@@ -59,7 +61,18 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(item == null ? 'Yeni Ürün Ekle' : 'Ürünü Düzenle'),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFF8A0C27), width: 2.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        backgroundColor: Color(0xFFEDEFE8),
+        title: Text(
+            item == null ? 'Yeni Ürün Ekle' : 'Ürünü Düzenle',
+          style: TextStyle(
+            color: Color(0xFF8A0C27),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -77,6 +90,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
                 decoration: const InputDecoration(labelText: 'Fiyat'),
                 keyboardType: TextInputType.number,
               ),
+
               const SizedBox(height: 16),
               DropdownButton<MenuCategory>(
                 value: selectedCategory,
@@ -92,16 +106,20 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
                     selectedCategory = value;
                   }
                 },
+                dropdownColor: const Color(0xFFEDEFE8),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(
+          CustomButton(
+            text: 'İptal',
+            backgroundColor: Colors.transparent,
+            textColor: const Color(0xFF8A0C27),
             onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
           ),
-          TextButton(
+          CustomButton(
+              text: 'Kaydet',
             onPressed: () async {
               try {
                 final price = double.parse(priceController.text);
@@ -130,7 +148,6 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
                 );
               }
             },
-            child: const Text('Kaydet'),
           ),
         ],
       ),
@@ -142,16 +159,34 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ürünü Sil'),
-        content: const Text('Bu ürünü silmek istediğinizden emin misiniz?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal'),
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFF8A0C27), width: 2.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        backgroundColor: Color(0xFFEDEFE8),
+        title: const Text(
+        'Ürünü Sil',
+        style: TextStyle(
+          color: Color(0xFF8A0C27),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+        content: const Text(
+            'Bu ürünü silmek istediğinizden emin misiniz?',
+          style: TextStyle(
+            color: Colors.black,
           ),
-          TextButton(
+        ),
+        actions: [
+          CustomButton(
+            text: 'İptal',
+            backgroundColor: Colors.transparent,
+            textColor: const Color(0xFF8A0C27),
+              onPressed: () => Navigator.pop(context, false),
+          ),
+          CustomButton(
+              text: 'Sil',
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sil'),
           ),
         ],
       ),
@@ -198,23 +233,28 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return ListTile(
-          title: Text(item.name),
-          subtitle: Text(
-              '${item.description}\nFiyat: ₺${item.price.toStringAsFixed(2)}'),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => _showAddEditItemDialog(item),
+        return Column(
+          children: [
+            ListTile(
+              title: Text(item.name),
+              subtitle: Text(
+                  '${item.description}\nFiyat: ₺${item.price.toStringAsFixed(2)}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const CustomIcon(iconData: Icons.edit),
+                    onPressed: () => _showAddEditItemDialog(item),
+                  ),
+                  IconButton(
+                    icon: const CustomIcon(iconData: Icons.delete),
+                    onPressed: () => _deleteItem(item),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () => _deleteItem(item),
-              ),
-            ],
-          ),
+            ),
+            const Divider(),
+          ],
         );
       },
     );
@@ -224,27 +264,57 @@ class _MenuManagementScreenState extends State<MenuManagementScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.restaurant.name} - Menü Yönetimi'),
+        title: Text(
+            '${widget.restaurant.name} - Menü Yönetimi',
+                style: TextStyle(
+                  color: Color(0xFF8A0C27),
+                  fontWeight: FontWeight.bold,
+                ),
+        ),
+        centerTitle: true,
+        backgroundColor: Color(0xFFEDEFE8),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'Yiyecekler'),
             Tab(text: 'İçecekler'),
           ],
+          labelColor: Color(0xFF8A0C27),
+          indicatorColor: Color(0xFF8A0C27),
+          unselectedLabelColor: Colors.black,
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildMenuList(_getItemsByCategory(MenuCategory.food)),
-                _buildMenuList(_getItemsByCategory(MenuCategory.drink)),
-              ],
+          ? Stack(
+        children: [
+          Container(
+            color: const Color(0xFFEDEFE8),
+          ),
+          const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8A0C27)),
             ),
+          ),
+        ],
+      )
+          : Container(
+        color: const Color(0xFFEDEFE8),
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildMenuList(_getItemsByCategory(MenuCategory.food)),
+            _buildMenuList(_getItemsByCategory(MenuCategory.drink)),
+          ],
+        ),
+      ),
+
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF8A0C27),
         onPressed: () => _showAddEditItemDialog(),
-        child: const Icon(Icons.add),
+        child: const CustomIcon(
+          iconData: Icons.add,
+        iconColor: Color(0xFFEDEFE8),
+        ),
       ),
     );
   }

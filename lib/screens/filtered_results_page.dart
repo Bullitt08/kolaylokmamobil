@@ -45,9 +45,18 @@ class _FilteredResultsPageState extends State<FilteredResultsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Filtrelenmiş Sonuçlar'),
+        title: Text('Filtrelenmiş Sonuçlar',
+          style: TextStyle(
+          color: Color(0xFF8A0C27),
+          fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Color(0xFFEDEFE8),
       ),
-      body: widget.filteredRestaurants.isEmpty
+      body: Container(
+        color: Color(0xFFEDEFE8),
+         child:  widget.filteredRestaurants.isEmpty
           ? const Center(
               child: Text('Filtrelere uygun restoran bulunamadı.'),
             )
@@ -186,6 +195,7 @@ class _FilteredResultsPageState extends State<FilteredResultsPage> {
                 );
               },
             ),
+      ),
     );
   }
 }

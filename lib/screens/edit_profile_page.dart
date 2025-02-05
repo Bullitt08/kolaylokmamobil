@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
+import 'package:kolaylokma/customs/customtextformfield.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
 
@@ -170,7 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       children: [
         CircleAvatar(
           radius: 50,
-          backgroundColor: Colors.blue,
+          backgroundColor: Color(0xFF8A0C27),
           backgroundImage: widget.user.profileImageUrl != null
               ? NetworkImage(widget.user.profileImageUrl!)
               : null,
@@ -229,12 +232,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profili Düzenle'),
+        title: const Text(
+          'Profili Düzenle',
+          style: TextStyle(
+            color: Color(0xFF8A0C27),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Color(0xFFEDEFE8),
       ),
+      backgroundColor: Color(0xFFEDEFE8),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -245,12 +258,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     _buildProfileImage(),
                     const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
+
+                    CustomTextFormField(
+                        controller: _nameController,
                         labelText: 'Ad',
-                        border: OutlineInputBorder(),
-                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Lütfen adınızı girin';
@@ -259,12 +270,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextFormField(
                       controller: _surnameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Soyad',
-                        border: OutlineInputBorder(),
-                      ),
+                      labelText: 'Soyad',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Lütfen soyadınızı girin';
@@ -273,21 +281,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextFormField(
                       controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Telefon Numarası',
-                        border: OutlineInputBorder(),
-                      ),
+                      labelText: 'Telefon Numarası',
                       keyboardType: TextInputType.phone,
+                      prefixIcon: const CustomIcon(iconData: Icons.phone),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextFormField(
                       controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: 'Adres',
-                        border: OutlineInputBorder(),
-                      ),
+                      labelText: 'Adres',
+                      prefixIcon: const CustomIcon(iconData: Icons.location_on),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 24),
@@ -296,28 +300,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       'Şifre Değiştir',
                       style: TextStyle(
                         fontSize: 18,
+                        color: Color(0xFF8A0C27),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextFormField(
                       controller: _currentPasswordController,
-                      decoration: InputDecoration(
-                        labelText: 'Mevcut Şifre',
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscureCurrentPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              _obscureCurrentPassword =
-                                  !_obscureCurrentPassword;
-                            });
-                          },
-                        ),
-                      ),
+                      labelText: 'Mevcut Şifre',
+                      prefixIcon: const CustomIcon(iconData: Icons.lock),
                       obscureText: _obscureCurrentPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureCurrentPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () {
+                          setState(() {
+                            _obscureCurrentPassword = !_obscureCurrentPassword;
+                          });
+                        },
+                      ),
                       validator: (value) {
                         if (value != null && value.isNotEmpty) {
                           if (_newPasswordController.text.isEmpty) {
@@ -328,23 +330,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextFormField(
                       controller: _newPasswordController,
-                      decoration: InputDecoration(
-                        labelText: 'Yeni Şifre',
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscureNewPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              _obscureNewPassword = !_obscureNewPassword;
-                            });
-                          },
-                        ),
-                      ),
+                      labelText: 'Yeni Şifre',
+                      prefixIcon: const CustomIcon(iconData: Icons.lock),
                       obscureText: _obscureNewPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureNewPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () {
+                          setState(() {
+                            _obscureNewPassword = !_obscureNewPassword;
+                          });
+                        },
+                      ),
                       validator: (value) {
                         if (value != null && value.isNotEmpty) {
                           if (value.length < 6) {
@@ -358,24 +358,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextFormField(
                       controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                        labelText: 'Yeni Şifre (Tekrar)',
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscureConfirmPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                      ),
+                      labelText: 'Yeni Şifre (Tekrar)',
+                      prefixIcon: const CustomIcon(iconData: Icons.lock),
                       obscureText: _obscureConfirmPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                      ),
                       validator: (value) {
                         if (_newPasswordController.text.isNotEmpty) {
                           if (value == null || value.isEmpty) {
@@ -389,12 +386,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                      child: const Text('Değişiklikleri Kaydet'),
+
+                    CustomButton(text: 'Değişiklikleri Kaydet',
+                        onPressed: _saveChanges,
                     ),
                   ],
                 ),
