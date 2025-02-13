@@ -12,7 +12,7 @@ class CustomTextFormField extends StatelessWidget {
   final Color borderColor;
   final int? maxLines;
   final Color hintTextColor;
-  final Color floatingLabelColor; // Yeni parametre eklendi
+  final Color floatingLabelColor;
 
   const CustomTextFormField({
     Key? key,
@@ -46,13 +46,15 @@ class CustomTextFormField extends StatelessWidget {
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
         ),
         enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
           borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: floatingLabelColor),
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
+          borderSide: BorderSide(color: floatingLabelColor, width: 2.5),
         ),
       ),
       validator: validator,
