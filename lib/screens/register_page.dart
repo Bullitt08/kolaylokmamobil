@@ -88,7 +88,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         title: Image.asset(
           'web/icons/logo.png',
-          height: 30, // logo boyutu küçültüldü
+          height: 40,
         ),
         centerTitle: true,
       ),
