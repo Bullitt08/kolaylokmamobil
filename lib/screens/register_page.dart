@@ -19,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _surnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   bool _obscureText = true;
 
@@ -28,6 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _surnameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -86,37 +88,37 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         title: Image.asset(
           'web/icons/logo.png',
-          height: 40,
+          height: 30, // logo boyutu küçültüldü
         ),
-        elevation: 0,
+        centerTitle: true,
       ),
       body: Stack(
         children: [
           // Main widget structure for registration
           SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(12.0), // padding azaltıldı
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
                   Image.asset(
                     'web/icons/register.png',
-                    height: 200,
+                    height: 150, // görsel boyutu küçültüldü
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   const Text(
                     'Kayıt Ol',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 36,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF8A0C27),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // Name field
                   CustomTextFormField(
@@ -132,7 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Surname field
                   CustomTextFormField(
@@ -148,7 +150,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Email field
                   CustomTextFormField(
@@ -168,7 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Password field
                   CustomTextFormField(
@@ -199,15 +201,34 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  // Confirm Password field
+                  CustomTextFormField(
+                    controller: _confirmPasswordController,
+                    labelText: 'Şifre Tekrarı',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.lock,
+                    ),
+                    obscureText: _obscureText,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Lütfen şifrenizi tekrar girin';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Şifreler eşleşmiyor';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // Register button
                   CustomButton(
                     text: 'Kayıt Ol',
                     onPressed: _isLoading ? null : () => _register(),
                   ),
-                  const SizedBox(height: 16),
-
+                  const SizedBox(height: 12),
                   // Login button
                   Center(
                     child: RichText(
@@ -217,7 +238,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         style: const TextStyle(
                           color: Color(0xFF8A0C27),
                           fontWeight: FontWeight.normal,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                         children: [
                           WidgetSpan(
@@ -241,7 +262,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 style: TextStyle(
                                   color: Color(0xFF8A0C27),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
