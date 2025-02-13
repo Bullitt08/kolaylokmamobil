@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:kolaylokma/customs/custombutton.dart';
+import 'package:kolaylokma/customs/customicon.dart';
+import 'package:kolaylokma/customs/customtextformfield.dart';
+import 'package:kolaylokma/services/auth_service.dart';
+import 'login_page.dart';
 import '../main.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -12,19 +16,18 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _surnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   bool _obscureText = true;
-  bool _obscureConfirmText = true;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _surnameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -33,44 +36,28 @@ class _RegisterPageState extends State<RegisterPage> {
       setState(() => _isLoading = true);
 
       try {
-        // Kayıt işlemleri
         await AuthService().register(
-          _nameController.text.split(' ')[0],
-          _nameController.text.split(' ').sublist(1).join(' '),
+          _nameController.text,
+          _surnameController.text,
           _emailController.text,
           _passwordController.text,
         );
 
         if (mounted) {
-          // Başarılı kayıttan sonra ana sayfaya yönlendir
+          // Successful registration redirects to the main page
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const MainScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const MainScreen()),
           );
         }
       } catch (e) {
         if (mounted) {
           String errorMessage = 'Bilinmeyen bir hata oluştu';
 
-          if (e.toString().contains('email-already-in-use')) {
-            errorMessage = 'Bu e-posta adresi zaten kullanımda';
-          } else if (e.toString().contains('invalid-email')) {
-            errorMessage = 'Geçersiz e-posta adresi';
-          } else if (e.toString().contains('operation-not-allowed')) {
-            errorMessage = 'E-posta/şifre ile kayıt şu anda devre dışı';
-          } else if (e.toString().contains('weak-password')) {
-            errorMessage =
-                'Şifreniz çok zayıf, lütfen daha güçlü bir şifre seçin';
-          } else if (e.toString().contains('network-request-failed')) {
-            errorMessage = 'İnternet bağlantınızı kontrol edin';
-          }
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: Color(0xFF8A0C27),
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
             ),
@@ -87,168 +74,199 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFEDEFE8),
       appBar: AppBar(
+        backgroundColor: Color(0xFFEDEFE8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Kayıt Ol'),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 32),
-              // Logo veya uygulama adı
-              const Icon(
-                Icons.restaurant_menu,
-                size: 80,
-                color: Colors.blue,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'KolayLokma',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 32),
-              // Ad Soyad alanı
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Ad Soyad',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen adınızı ve soyadınızı girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // E-posta alanı
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'E-posta',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen e-posta adresinizi girin';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Geçerli bir e-posta adresi girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // Şifre alanı
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscureText,
-                decoration: InputDecoration(
-                  labelText: 'Şifre',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  ),
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen şifrenizi girin';
-                  }
-                  if (value.length < 6) {
-                    return 'Şifre en az 6 karakter olmalıdır';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // Şifre tekrar alanı
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: _obscureConfirmText,
-                decoration: InputDecoration(
-                  labelText: 'Şifre Tekrar',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmText
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmText = !_obscureConfirmText;
-                      });
-                    },
-                  ),
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen şifrenizi tekrar girin';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'Şifreler eşleşmiyor';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              // Kayıt ol butonu
-              ElevatedButton(
-                onPressed: _isLoading ? null : _register,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        'Kayıt Ol',
-                        style: TextStyle(fontSize: 16),
-                      ),
-              ),
-              const SizedBox(height: 16),
-              // Giriş yap butonu
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Zaten hesabınız var mı? Giriş yapın'),
-              ),
-            ],
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
           ),
         ),
+        title: Image.asset(
+          'web/icons/logo.png',
+          height: 40,
+        ),
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          // Main widget structure for registration
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 32),
+
+                  Image.asset(
+                    'web/icons/register.png',
+                    height: 200,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Kayıt Ol',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF8A0C27),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Name field
+                  CustomTextFormField(
+                    controller: _nameController,
+                    labelText: 'Ad',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.person,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Lütfen adınızı girin';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Surname field
+                  CustomTextFormField(
+                    controller: _surnameController,
+                    labelText: 'Soyad',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.person_outline,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Lütfen soyadınızı girin';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email field
+                  CustomTextFormField(
+                    controller: _emailController,
+                    labelText: 'E-posta',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.email,
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Lütfen e-posta adresinizi girin';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Geçerli bir e-posta adresi girin';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Password field
+                  CustomTextFormField(
+                    controller: _passwordController,
+                    labelText: 'Şifre',
+                    prefixIcon: const CustomIcon(
+                      iconData: Icons.lock,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: CustomIcon(
+                        iconData: _obscureText ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
+                    obscureText: _obscureText,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Lütfen şifrenizi girin';
+                      }
+                      if (value.length < 6) {
+                        return 'Şifre en az 6 karakter olmalıdır';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Register button
+                  CustomButton(
+                    text: 'Kayıt Ol',
+                    onPressed: _isLoading ? null : () => _register(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Login button
+                  Center(
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        text: 'Hesabın var mı? ',
+                        style: const TextStyle(
+                          color: Color(0xFF8A0C27),
+                          fontWeight: FontWeight.normal,
+                          fontSize: 16,
+                        ),
+                        children: [
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.baseline,
+                            baseline: TextBaseline.alphabetic,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginPage(),
+                                  ),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size(0, 0),
+                              ),
+                              child: const Text(
+                                'Giriş Yap',
+                                style: TextStyle(
+                                  color: Color(0xFF8A0C27),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Loading indicator in the center
+          if (_isLoading)
+            Positioned(
+              top: MediaQuery.of(context).padding.top,
+              left: MediaQuery.of(context).size.width / 2 - 25,
+              child: const CircularProgressIndicator(
+                strokeWidth: 1,
+                color: Color(0xFF8A0C27),
+                backgroundColor: Colors.white,
+              ),
+            ),
+        ],
       ),
     );
   }

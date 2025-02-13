@@ -9,7 +9,7 @@ class CustomIcon extends StatelessWidget {
     Key? key,
     required this.iconData,
     this.iconColor = Colors.black,
-    this.size = 24.0,
+    this.size = 22.0,
   }) : super(key: key);
 
   @override

@@ -35,14 +35,17 @@ class CustomTextFormField extends StatelessWidget {
         hintText: hintText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon, // Yeni eklendi
+        floatingLabelStyle: const TextStyle(color: Color(0xFF8A0C27)),
         border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
         ),
         enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
           borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: const Color(0xFF8A0C27)),
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
+          borderSide: BorderSide(color: Color(0xFF8A0C27), width: 2.5), // Kalınlık artırıldı
         ),
       ),
       validator: validator,
