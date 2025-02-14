@@ -84,15 +84,16 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           const SizedBox(height: 24),
-          CustomButton(text: 'Giriş Yap',
-              onPressed: (){
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
-                );
-                },
+          CustomButton(
+            text: 'Giriş Yap',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -125,13 +126,13 @@ class _ProfilePageState extends State<ProfilePage> {
             const Divider(),
             // Kullanıcı bilgileri
             ListTile(
-              leading: CustomIcon(iconData:Icons.person),
+              leading: CustomIcon(iconData: Icons.person),
               title: const Text('Ad Soyad'),
               subtitle: Text(userData.fullName),
             ),
             const Divider(),
             ListTile(
-              leading: CustomIcon(iconData:Icons.email),
+              leading: CustomIcon(iconData: Icons.email),
               title: const Text('E-posta'),
               subtitle: Text(userData.email),
             ),
@@ -144,13 +145,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const Divider(),
             const ListTile(
-              leading: CustomIcon(iconData:Icons.help),
+              leading: CustomIcon(iconData: Icons.help),
               title: Text('Yardım'),
               trailing: Icon(Icons.chevron_right),
             ),
             const Divider(),
             ListTile(
-              leading: CustomIcon(iconData:Icons.edit),
+              leading: CustomIcon(iconData: Icons.edit),
               title: const Text('Hesabımı Düzenle'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
@@ -170,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Column(
                 children: [
                   ListTile(
-                    leading: CustomIcon(iconData:Icons.admin_panel_settings),
+                    leading: CustomIcon(iconData: Icons.admin_panel_settings),
                     title: const Text('Restoran Yönetimi'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
