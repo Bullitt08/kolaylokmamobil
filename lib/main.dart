@@ -10,6 +10,7 @@ import 'services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'screens/filtered_results_page.dart';
 import 'package:flutter/widgets.dart';
+import 'screens/reset_password_page.dart'; // Add this line to import ResetPasswordPage
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Color(0xFF8A0C27),
       ),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        if (settings.name?.startsWith('/reset-password') ?? false) {
+          return MaterialPageRoute(
+            builder: (context) => const ResetPasswordPage(),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (context) => const LoadingScreen(),
+        );
+      },
       home: const LoadingScreen(),
     );
   }

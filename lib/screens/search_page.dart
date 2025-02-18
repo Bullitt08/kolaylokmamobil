@@ -17,7 +17,6 @@ class _SearchPageState extends State<SearchPage> {
   List<RestaurantModel> _allRestaurants = [];
   Map<String, List<Map<String, dynamic>>> _menuItems = {};
   List<RestaurantModel> _filteredRestaurants = [];
-  Map<String, List<Map<String, dynamic>>> _filteredMenuItems = {};
 
   bool _isLoading = false;
 
@@ -34,11 +33,13 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _loadAllRestaurants() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
     try {
       final restaurants = await _databaseService.getAllRestaurants();
+      if (!mounted) return;
       setState(() {
         _allRestaurants = restaurants;
         _filteredRestaurants = restaurants;
@@ -46,12 +47,14 @@ class _SearchPageState extends State<SearchPage> {
       });
       for (final restaurant in restaurants) {
         final menus = await _databaseService.getRestaurantMenus(restaurant.id);
+        if (!mounted) return;
         setState(() {
           _menuItems[restaurant.id] = menus;
         });
       }
     } catch (e) {
       debugPrint('Restoranlar yüklenirken hata oluştu: $e');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextFormField extends StatelessWidget {
   final TextEditingController controller;
@@ -13,6 +14,7 @@ class CustomTextFormField extends StatelessWidget {
   final int? maxLines;
   final Color hintTextColor;
   final Color floatingLabelColor;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextFormField({
     Key? key,
@@ -28,6 +30,7 @@ class CustomTextFormField extends StatelessWidget {
     this.maxLines,
     this.hintTextColor = Colors.grey,
     this.floatingLabelColor = const Color(0xFF8A0C27),
+    this.inputFormatters,
   }) : super(key: key);
 
   @override
@@ -37,6 +40,7 @@ class CustomTextFormField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       maxLines: obscureText ? 1 : maxLines,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: labelText,
         labelStyle: TextStyle(color: borderColor),
