@@ -4,6 +4,7 @@ import 'package:kolaylokma/customs/custombutton.dart';
 import 'package:kolaylokma/customs/customtextformfield.dart';
 import '../services/auth_service.dart';
 import 'register_page.dart';
+import 'forgot_password_page.dart';
 import '../main.dart';
 
 class LoginPage extends StatefulWidget {
@@ -32,14 +33,13 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = true);
 
       try {
-        // Giriş işlemleri
-        await AuthService().login(
+        final authService = AuthService();
+        await authService.login(
           _emailController.text,
           _passwordController.text,
         );
 
         if (mounted) {
-          // Başarılı girişten sonra ana sayfaya yönlendir
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -49,17 +49,14 @@ class _LoginPageState extends State<LoginPage> {
         }
       } catch (e) {
         if (mounted) {
-          String errorMessage = 'Bilinmeyen bir hata oluştu';
-
+          final authService = AuthService();
+          String errorMessage = 'Hatalı şifre girdiniz';
           if (e.toString().contains('user-not-found')) {
-            errorMessage =
-            'Bu e-posta adresi ile kayıtlı bir kullanıcı bulunamadı';
+            errorMessage = 'Kullanıcı bulunamadı';
           } else if (e.toString().contains('wrong-password')) {
             errorMessage = 'Hatalı şifre girdiniz';
           } else if (e.toString().contains('invalid-email')) {
             errorMessage = 'Geçersiz e-posta adresi';
-          } else if (e.toString().contains('network-request-failed')) {
-            errorMessage = 'İnternet bağlantınızı kontrol edin';
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -154,7 +151,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     suffixIcon: IconButton(
                       icon: CustomIcon(
-                        iconData: _obscureText ? Icons.visibility : Icons.visibility_off,
+                        iconData: _obscureText
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -176,6 +175,34 @@ class _LoginPageState extends State<LoginPage> {
                     borderColor: Colors.black,
                   ),
 
+                  // Şifremi unuttum linki
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ForgotPasswordPage(),
+                                ),
+                              );
+                            },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                      ),
+                      child: const Text(
+                        'Şifremi Unuttum',
+                        style: TextStyle(
+                          color: Color(0xFF8A0C27),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
 
                   // Giriş yap butonu

@@ -56,6 +56,16 @@ class _RegisterPageState extends State<RegisterPage> {
         if (mounted) {
           String errorMessage = 'Bilinmeyen bir hata oluştu';
 
+          if (e.toString().contains('invalid format')) {
+            errorMessage = 'Geçersiz e-posta formatı';
+          } else if (e.toString().contains('Email already registered')) {
+            errorMessage = 'Bu e-posta adresi zaten kullanımda';
+          } else if (e.toString().contains('Weak password')) {
+            errorMessage = 'Şifre çok zayıf';
+          } else if (e.toString().contains('network-request-failed')) {
+            errorMessage = 'İnternet bağlantınızı kontrol edin';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -164,7 +174,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value == null || value.isEmpty) {
                         return 'Lütfen e-posta adresinizi girin';
                       }
-                      if (!value.contains('@')) {
+                      final emailRegex =
+                          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                      if (!emailRegex.hasMatch(value)) {
                         return 'Geçerli bir e-posta adresi girin';
                       }
                       return null;
@@ -181,7 +193,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     suffixIcon: IconButton(
                       icon: CustomIcon(
-                        iconData: _obscureText ? Icons.visibility : Icons.visibility_off,
+                        iconData: _obscureText
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {

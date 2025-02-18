@@ -65,7 +65,7 @@ class AuthService {
         });
       }
     } catch (e) {
-      throw _handleAuthError(e);
+      throw handleAuthError(e);
     }
   }
 
@@ -88,7 +88,7 @@ class AuthService {
       }
       throw 'Kullanıcı girişi yapılmamış';
     } catch (e) {
-      throw _handleAuthError(e);
+      throw handleAuthError(e);
     }
   }
 
@@ -106,16 +106,21 @@ class AuthService {
   // Giriş yap
   Future<void> login(String email, String password) async {
     try {
+      print('Login attempt for email: $email'); // Debug log
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
 
       if (response.user != null && response.user!.emailConfirmedAt == null) {
-        throw 'email-not-confirmed';
+        throw AuthException('email-not-confirmed');
       }
+    } on AuthException catch (e) {
+      print('AuthException during login: ${e.message} (${e.statusCode})');
+      throw e;
     } catch (e) {
-      throw _handleAuthError(e);
+      print('Unknown error during login: $e');
+      throw AuthException('Invalid login credentials');
     }
   }
 
@@ -124,7 +129,7 @@ class AuthService {
     try {
       await _supabase.auth.signOut();
     } catch (e) {
-      throw _handleAuthError(e);
+      throw handleAuthError(e);
     }
   }
 
@@ -141,12 +146,6 @@ class AuthService {
             .single();
 
         print('Veritabanından gelen yanıt: $response');
-
-        if (response == null) {
-          print('Veritabanından yanıt alınamadı');
-          return null;
-        }
-
         print('UserModel oluşturmadan önce veri: $response');
         final userModel = UserModel.fromMap(response);
         print('Oluşturulan UserModel: $userModel');
@@ -184,37 +183,83 @@ class AuthService {
         });
       }
     } catch (e) {
-      throw _handleAuthError(e);
+      throw handleAuthError(e);
+    }
+  }
+
+  // Şifre sıfırlama e-postası gönder
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo:
+            null, // Artık redirectTo kullanmıyoruz çünkü token kullanacağız
+      );
+    } catch (e) {
+      throw handleAuthError(e);
+    }
+  }
+
+  // Şifre sıfırlama tokenini doğrula
+  Future<bool> verifyResetToken(String email, String token) async {
+    try {
+      final response = await _supabase.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: OtpType.recovery,
+      );
+      return response.session != null;
+    } catch (e) {
+      throw handleAuthError(e);
+    }
+  }
+
+  // Şifre güncelleme
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      final response = await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+
+      if (response.user == null) {
+        throw 'Şifre güncellenemedi';
+      }
+    } catch (e) {
+      throw handleAuthError(e);
     }
   }
 
   // Supabase Auth hatalarını Türkçe'ye çevir
-  String _handleAuthError(dynamic error) {
-    String errorMessage = 'Bir hata oluştu';
-
-    if (error == 'email-not-confirmed') {
-      return 'Lütfen e-posta adresinizi onaylayın';
-    }
+  String handleAuthError(dynamic error) {  // '_' karakterini kaldırarak public yaptık
+    print('Raw error in handleAuthError: $error');
+    print('Error type: ${error.runtimeType}');
 
     if (error is AuthException) {
+      print('Auth error details - Message: ${error.message}, Status: ${error.statusCode}');
+      
       switch (error.message) {
+        case 'email-not-confirmed':
+          return 'Lütfen e-posta adresinizi onaylayın';
         case 'Invalid login credentials':
-          errorMessage = 'Geçersiz e-posta veya şifre';
-          break;
+        case 'Invalid email or password':
+          return 'Hatalı şifre girdiniz';
+        case 'Invalid user credentials':
+          return 'Hatalı şifre girdiniz';
         case 'User not found':
-          errorMessage = 'Kullanıcı bulunamadı';
-          break;
-        case 'Email already registered':
-          errorMessage = 'Bu e-posta adresi zaten kullanımda';
-          break;
-        case 'Weak password':
-          errorMessage = 'Şifre çok zayıf';
-          break;
+          return 'Kullanıcı bulunamadı';
+        case 'Invalid email':
+          return 'Geçersiz e-posta adresi';
         default:
-          errorMessage = 'Bir hata oluştu: ${error.message}';
+          if (error.message.toLowerCase().contains('password') ||
+              error.message.toLowerCase().contains('credentials') ||
+              error.statusCode == 400) {
+            return 'Hatalı şifre girdiniz';
+          }
+          return 'Hatalı şifre girdiniz';
       }
     }
 
-    return errorMessage;
+    print('Unhandled error type: ${error.runtimeType}');
+    return 'Hatalı şifre girdiniz';
   }
 }
