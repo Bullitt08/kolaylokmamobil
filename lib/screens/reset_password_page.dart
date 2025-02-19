@@ -93,10 +93,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 32),
-                    const Icon(
-                      Icons.lock_reset,
-                      size: 100,
-                      color: Color(0xFF8A0C27),
+                    Image.asset(
+                      'web/icons/reset-password.png',
+                      height: 150,
                     ),
                     const SizedBox(height: 16),
                     const Text(
