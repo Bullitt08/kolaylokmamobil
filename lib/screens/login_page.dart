@@ -109,14 +109,14 @@ class _LoginPageState extends State<LoginPage> {
 
                   Image.asset(
                     'web/icons/login.png',
-                    height: 200,
+                    height: 150,
                   ),
                   const SizedBox(height: 16),
                   const Text(
                     'Giriş Yap',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 36,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF8A0C27),
                     ),

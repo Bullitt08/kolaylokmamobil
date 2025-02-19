@@ -31,4 +31,7 @@ flutter:
     - web/icons/logo.png
     - web/icons/register.png
     - web/icons/login.png
+    - web/icons/forgot-password.png
+    - web/icons/verification.png
+    - web/icons/reset-password.png
   uses-material-design: true

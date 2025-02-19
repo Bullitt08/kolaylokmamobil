@@ -90,10 +90,9 @@ class _VerifyTokenPageState extends State<VerifyTokenPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 32),
-                  const Icon(
-                    Icons.mark_email_read,
-                    size: 100,
-                    color: Color(0xFF8A0C27),
+                  Image.asset(
+                    'web/icons/verification.png',
+                    height: 150,
                   ),
                   const SizedBox(height: 16),
                   const Text(
