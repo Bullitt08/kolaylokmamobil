@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 
 class AuthService {
@@ -230,13 +231,15 @@ class AuthService {
   }
 
   // Supabase Auth hatalarını Türkçe'ye çevir
-  String handleAuthError(dynamic error) {  // '_' karakterini kaldırarak public yaptık
+  String handleAuthError(dynamic error) {
+    // '_' karakterini kaldırarak public yaptık
     print('Raw error in handleAuthError: $error');
     print('Error type: ${error.runtimeType}');
 
     if (error is AuthException) {
-      print('Auth error details - Message: ${error.message}, Status: ${error.statusCode}');
-      
+      print(
+          'Auth error details - Message: ${error.message}, Status: ${error.statusCode}');
+
       switch (error.message) {
         case 'email-not-confirmed':
           return 'Lütfen e-posta adresinizi onaylayın';
@@ -261,5 +264,23 @@ class AuthService {
 
     print('Unhandled error type: ${error.runtimeType}');
     return 'Hatalı şifre girdiniz';
+  }
+
+  Future<UserModel?> getCurrentUser() async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) return null;
+
+      final userData = await _supabase
+          .from('users')
+          .select()
+          .eq('id', currentUser.id)
+          .single();
+
+      return UserModel.fromMap(userData);
+    } catch (e) {
+      debugPrint('getCurrentUser error: $e');
+      return null;
+    }
   }
 }

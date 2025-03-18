@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import '../services/database_service.dart';
 import '../models/restaurant_model.dart';
+import 'restaurant_reviews_page.dart';
 
 class HomePage extends StatefulWidget {
   final Function? onLocationReady;
@@ -21,7 +22,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final _databaseService = DatabaseService();
   LatLng? currentPosition;
   List<RestaurantModel> restaurants = [];
-  Map<String, dynamic>? _activeFilters;
   StreamSubscription<Position>? _positionStreamSubscription;
 
   @override
@@ -170,12 +170,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return tempFilteredRestaurants;
   }
 
-  void updateFilters(Map<String, dynamic> filters) {
-    setState(() {
-      _activeFilters = filters;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint(
@@ -271,136 +265,238 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         maxChildSize: 0.9,
                                         expand: false,
                                         builder: (context, scrollController) =>
-                                            Column(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: const BorderRadius
-                                                    .vertical(
-                                                    top: Radius.circular(20)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey
-                                                        .withOpacity(0.3),
-                                                    spreadRadius: 1,
-                                                    blurRadius: 5,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Center(
-                                                    child: Container(
-                                                      width: 40,
-                                                      height: 4,
-                                                      margin:
-                                                          const EdgeInsets.only(
-                                                              bottom: 16),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.grey[300],
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(2),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    restaurant.name,
-                                                    style: const TextStyle(
-                                                      fontSize: 24,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    restaurant.description,
-                                                    style: TextStyle(
-                                                      color: Colors.grey[600],
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: ListView.builder(
-                                                controller: scrollController,
+                                            DefaultTabController(
+                                          length: 2,
+                                          child: Column(
+                                            children: [
+                                              Container(
                                                 padding:
                                                     const EdgeInsets.all(16),
-                                                itemCount: menus.length,
-                                                itemBuilder: (context, index) {
-                                                  final menu = menus[index];
-                                                  return Card(
-                                                    elevation: 2,
-                                                    margin:
-                                                        const EdgeInsets.only(
-                                                            bottom: 12),
-                                                    child: ListTile(
-                                                      contentPadding:
-                                                          const EdgeInsets.all(
-                                                              16),
-                                                      title: Text(
-                                                        menu['name'],
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 16,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      const BorderRadius
+                                                          .vertical(
+                                                          top: Radius.circular(
+                                                              20)),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.3),
+                                                      spreadRadius: 1,
+                                                      blurRadius: 5,
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Center(
+                                                      child: Container(
+                                                        width: 40,
+                                                        height: 4,
+                                                        margin: const EdgeInsets
+                                                            .only(bottom: 16),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Colors.grey[300],
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(2),
                                                         ),
                                                       ),
-                                                      subtitle: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(menu[
-                                                                  'description'] ??
-                                                              ''),
-                                                          const SizedBox(
-                                                              height: 8),
-                                                          Text(
-                                                            '${menu['price']} ₺',
-                                                            style:
-                                                                const TextStyle(
-                                                              color:
-                                                                  Colors.green,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      trailing:
-                                                          menu['image_url'] !=
-                                                                  null
-                                                              ? ClipRRect(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              8),
-                                                                  child: Image
-                                                                      .network(
-                                                                    menu[
-                                                                        'image_url'],
-                                                                    width: 60,
-                                                                    height: 60,
-                                                                    fit: BoxFit
-                                                                        .cover,
-                                                                  ),
-                                                                )
-                                                              : null,
                                                     ),
-                                                  );
-                                                },
+                                                    Text(
+                                                      restaurant.name,
+                                                      style: const TextStyle(
+                                                        fontSize: 24,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.star,
+                                                            color: Colors.amber,
+                                                            size: 20),
+                                                        const SizedBox(
+                                                            width: 4),
+                                                        Text(
+                                                          restaurant.rating
+                                                              .toStringAsFixed(
+                                                                  1),
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.location_on,
+                                                            color: Color(
+                                                                0xFF8A0C27),
+                                                            size: 20),
+                                                        const SizedBox(
+                                                            width: 4),
+                                                        Text(
+                                                          'Uzaklık: ${Geolocator.distanceBetween(
+                                                            currentPosition!
+                                                                .latitude,
+                                                            currentPosition!
+                                                                .longitude,
+                                                            restaurant.latitude,
+                                                            restaurant
+                                                                .longitude,
+                                                          ).round()} metre',
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .grey[600],
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    const TabBar(
+                                                      tabs: [
+                                                        Tab(
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Icon(Icons
+                                                                  .restaurant_menu),
+                                                              SizedBox(
+                                                                  width: 8),
+                                                              Text('Menü'),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Tab(
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Icon(Icons
+                                                                  .reviews),
+                                                              SizedBox(
+                                                                  width: 8),
+                                                              Text('Yorumlar'),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                      labelColor:
+                                                          Color(0xFF8A0C27),
+                                                      unselectedLabelColor:
+                                                          Colors.grey,
+                                                      indicatorColor:
+                                                          Color(0xFF8A0C27),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                          ],
+                                              Expanded(
+                                                child: TabBarView(
+                                                  children: [
+                                                    // Menü Tab
+                                                    ListView.builder(
+                                                      controller:
+                                                          scrollController,
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              16),
+                                                      itemCount: menus.length,
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                        final menu =
+                                                            menus[index];
+                                                        return Card(
+                                                          elevation: 2,
+                                                          margin:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  bottom: 12),
+                                                          child: ListTile(
+                                                            contentPadding:
+                                                                const EdgeInsets
+                                                                    .all(16),
+                                                            title: Text(
+                                                              menu['name'],
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 16,
+                                                              ),
+                                                            ),
+                                                            subtitle: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Text(menu[
+                                                                        'description'] ??
+                                                                    ''),
+                                                                const SizedBox(
+                                                                    height: 8),
+                                                                Text(
+                                                                  '${menu['price']} ₺',
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    color: Colors
+                                                                        .green,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        16,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            trailing:
+                                                                menu['image_url'] !=
+                                                                        null
+                                                                    ? ClipRRect(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(8),
+                                                                        child: Image
+                                                                            .network(
+                                                                          menu[
+                                                                              'image_url'],
+                                                                          width:
+                                                                              60,
+                                                                          height:
+                                                                              60,
+                                                                          fit: BoxFit
+                                                                              .cover,
+                                                                        ),
+                                                                      )
+                                                                    : null,
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                    // Yorumlar Tab
+                                                    RestaurantReviewsPage(
+                                                        restaurant: restaurant),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     );
@@ -466,7 +562,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           final center = mapController.camera.center;
                           animatedMapMove(center, currentZoom + 1);
                         },
-                        child: const CustomIcon(iconData: Icons.add,
+                        child: const CustomIcon(
+                          iconData: Icons.add,
                           iconColor: Color(0xFF8A0C27),
                         ),
                       ),
@@ -479,7 +576,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           final center = mapController.camera.center;
                           animatedMapMove(center, currentZoom - 1);
                         },
-                        child: const CustomIcon(iconData: Icons.remove,
+                        child: const CustomIcon(
+                          iconData: Icons.remove,
                           iconColor: Color(0xFF8A0C27),
                         ),
                       ),
@@ -492,7 +590,8 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             animatedMapMove(currentPosition!, 15);
                           }
                         },
-                        child: const CustomIcon(iconData: Icons.my_location,
+                        child: const CustomIcon(
+                          iconData: Icons.my_location,
                           iconColor: Color(0xFF8A0C27),
                         ),
                       ),

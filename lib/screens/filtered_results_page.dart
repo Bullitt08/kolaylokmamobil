@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/restaurant_model.dart';
 import '../services/database_service.dart';
+import '../customs/customicon.dart';
+import 'restaurant_reviews_page.dart';
 
 class FilteredResultsPage extends StatefulWidget {
   final List<RestaurantModel> filteredRestaurants;
@@ -84,118 +86,206 @@ class _FilteredResultsPageState extends State<FilteredResultsPage> {
                   return Card(
                     margin: const EdgeInsets.all(8),
                     child: ExpansionTile(
-                      title: Text(
-                        restaurant.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      subtitle: Column(
+                      title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(restaurant.description),
+                          Text(
+                            restaurant.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            restaurant.description,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(
-                                Icons.star,
-                                size: 16,
-                                color: Colors.amber,
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              const SizedBox(width: 4),
+                              Text(
+                                restaurant.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              Text(' ${restaurant.rating.toStringAsFixed(1)}'),
                             ],
                           ),
+                          if (restaurant.imageUrl != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.network(
+                                  restaurant.imageUrl!,
+                                  height: 150,
+                                  width: MediaQuery.of(context).size.width - 32,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                       children: [
-                        if (menus.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: menus.length,
-                            itemBuilder: (context, menuIndex) {
-                              final menu = menus[menuIndex];
-                              final menuPrice =
-                                  (menu['price'] ?? 0.0).toDouble();
-                              final priceRange =
-                                  widget.filters['priceRange'] as RangeValues;
-
-                              // Fiyat aralığı kontrolü
-                              if (menuPrice < priceRange.start ||
-                                  menuPrice > priceRange.end) {
-                                return const SizedBox.shrink();
-                              }
-
-                              final bool isHighlighted =
-                                  widget.filters['menuSearch'] != null &&
-                                      (menu['name']
-                                              .toString()
-                                              .toLowerCase()
-                                              .contains(widget
-                                                  .filters['menuSearch']
-                                                  .toLowerCase()) ||
-                                          menu['description']
-                                              .toString()
-                                              .toLowerCase()
-                                              .contains(widget
-                                                  .filters['menuSearch']
-                                                  .toLowerCase()));
-
-                              return Container(
-                                color:
-                                    isHighlighted ? Colors.yellow[100] : null,
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  title: Text(
-                                    menu['name'],
-                                    style: TextStyle(
-                                      fontWeight: isHighlighted
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
+                        DefaultTabController(
+                          length: 2,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const TabBar(
+                                tabs: [
+                                  Tab(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CustomIcon(
+                                            iconData: Icons.restaurant_menu),
+                                        SizedBox(width: 8),
+                                        Text('Menü'),
+                                      ],
                                     ),
                                   ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(menu['description'] ?? ''),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${menuPrice.toStringAsFixed(2)} ₺',
-                                        style: const TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
+                                  Tab(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CustomIcon(iconData: Icons.reviews),
+                                        SizedBox(width: 8),
+                                        Text('Yorumlar'),
+                                      ],
+                                    ),
                                   ),
-                                  trailing: menu['image_url'] != null
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: Image.network(
-                                            menu['image_url'],
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover,
+                                ],
+                                labelColor: Color(0xFF8A0C27),
+                                unselectedLabelColor: Colors.grey,
+                                indicatorColor: Color(0xFF8A0C27),
+                              ),
+                              SizedBox(
+                                height: 300,
+                                child: TabBarView(
+                                  children: [
+                                    // Menü Tab
+                                    menus.isEmpty
+                                        ? const Padding(
+                                            padding: EdgeInsets.all(16),
+                                            child: Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                          )
+                                        : ListView.builder(
+                                            shrinkWrap: true,
+                                            physics:
+                                                const ClampingScrollPhysics(),
+                                            itemCount: menus.length,
+                                            itemBuilder: (context, menuIndex) {
+                                              final menu = menus[menuIndex];
+                                              final menuPrice =
+                                                  (menu['price'] ?? 0.0)
+                                                      .toDouble();
+
+                                              // Fiyat aralığı kontrolü
+                                              if (menuPrice <
+                                                      priceRange.start ||
+                                                  menuPrice > priceRange.end) {
+                                                return const SizedBox.shrink();
+                                              }
+
+                                              final bool isHighlighted = widget
+                                                              .filters[
+                                                          'menuSearch'] !=
+                                                      null &&
+                                                  (menu['name']
+                                                          .toString()
+                                                          .toLowerCase()
+                                                          .contains(widget
+                                                              .filters[
+                                                                  'menuSearch']
+                                                              .toLowerCase()) ||
+                                                      menu['description']
+                                                          .toString()
+                                                          .toLowerCase()
+                                                          .contains(widget
+                                                              .filters[
+                                                                  'menuSearch']
+                                                              .toLowerCase()));
+
+                                              return Container(
+                                                color: isHighlighted
+                                                    ? Colors.yellow[100]
+                                                    : null,
+                                                child: ListTile(
+                                                  contentPadding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8,
+                                                  ),
+                                                  title: Text(
+                                                    menu['name'],
+                                                    style: TextStyle(
+                                                      fontWeight: isHighlighted
+                                                          ? FontWeight.bold
+                                                          : FontWeight.normal,
+                                                    ),
+                                                  ),
+                                                  subtitle: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                          menu['description'] ??
+                                                              ''),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        '${menuPrice.toStringAsFixed(2)} ₺',
+                                                        style: const TextStyle(
+                                                          color: Colors.green,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  trailing: menu['image_url'] !=
+                                                          null
+                                                      ? ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                          child: Image.network(
+                                                            menu['image_url'],
+                                                            width: 60,
+                                                            height: 60,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                        )
+                                                      : null,
+                                                ),
+                                              );
+                                            },
                                           ),
-                                        )
-                                      : null,
+                                    // Yorumlar Tab
+                                    SizedBox(
+                                      height: 300,
+                                      child: RestaurantReviewsPage(
+                                        restaurant: restaurant,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
                   );

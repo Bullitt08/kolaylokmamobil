@@ -7,6 +7,9 @@ import 'login_page.dart';
 import '../main.dart';
 import 'admin_panel.dart';
 import 'edit_profile_page.dart';
+import 'user_reviews_page.dart';
+import 'admin_notifications_page.dart';
+import 'reported_reviews_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -137,13 +140,60 @@ class _ProfilePageState extends State<ProfilePage> {
               subtitle: Text(userData.email),
             ),
             const Divider(),
-            // Ayarlar
-            const ListTile(
-              leading: CustomIcon(iconData: Icons.notifications),
-              title: Text('Bildirimler'),
-              trailing: Icon(Icons.chevron_right),
+            ListTile(
+              leading: CustomIcon(iconData: Icons.star),
+              title: const Text('Değerlendirmelerim'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserReviewsPage(userId: userData.id),
+                  ),
+                );
+              },
             ),
             const Divider(),
+            ListTile(
+              leading: CustomIcon(iconData: Icons.notifications),
+              title: const Text('Bildirimler'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                if (userData.isAdmin) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminNotificationsPage(),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Bildirimler yakında eklenecek')),
+                  );
+                }
+              },
+            ),
+            const Divider(),
+            if (userData.isAdmin)
+              Column(
+                children: [
+                  ListTile(
+                    leading: CustomIcon(iconData: Icons.report_problem),
+                    title: const Text('Şikayet Edilen Yorumlar'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReportedReviewsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(),
+                ],
+              ),
             const ListTile(
               leading: CustomIcon(iconData: Icons.help),
               title: Text('Yardım'),
