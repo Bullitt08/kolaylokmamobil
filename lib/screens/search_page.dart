@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/restaurant_model.dart';
 import '../services/database_service.dart';
 import 'restaurant_menu_page.dart';
+import '../customs/customicon.dart';
+import 'restaurant_reviews_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -82,12 +84,43 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  void _navigateToRestaurantMenu(RestaurantModel restaurant) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RestaurantMenuPage(restaurant: restaurant),
-      ),
+  Widget _buildNetworkImage(String? imageUrl,
+      {double? width, double? height, BoxFit fit = BoxFit.cover}) {
+    if (imageUrl == null) {
+      return Container(
+        width: width,
+        height: height,
+        color: Colors.grey[200],
+        child: const Icon(Icons.image_not_supported, color: Colors.grey),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Icon(Icons.error_outline, color: Colors.red),
+        );
+      },
+      cacheWidth: width?.toInt(),
+      cacheHeight: height?.toInt(),
     );
   }
 
@@ -155,84 +188,155 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'Puan: ${restaurant.rating}',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
+                          Row(
+                            children: [
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              const SizedBox(width: 4),
+                              Text(
+                                restaurant.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                           if (restaurant.imageUrl != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
-                                child: Image.network(
-                                  restaurant.imageUrl!,
+                                child: _buildNetworkImage(
+                                  restaurant.imageUrl,
                                   height: 150,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
+                                  width: MediaQuery.of(context).size.width - 32,
                                 ),
                               ),
                             ),
                         ],
                       ),
-                      children: filteredMenus.isEmpty
-                          ? [
-                              const Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Center(
-                                  child: Text(
-                                      "Bu restoran için uygun menü bulunamadı."),
-                                ),
-                              )
-                            ]
-                          : filteredMenus.map((menu) {
-                              final menuPrice =
-                                  (menu['price'] ?? 0.0).toDouble();
-                              return Container(
-                                color: Colors.yellow[100],
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  title: Text(
-                                    menu['name'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                      children: [
+                        DefaultTabController(
+                          length: 2,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const TabBar(
+                                tabs: [
+                                  Tab(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CustomIcon(
+                                            iconData: Icons.restaurant_menu),
+                                        SizedBox(width: 8),
+                                        Text('Menü'),
+                                      ],
                                     ),
                                   ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(menu['description'] ?? ''),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${menuPrice.toStringAsFixed(2)} ₺',
-                                        style: const TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
+                                  Tab(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CustomIcon(iconData: Icons.reviews),
+                                        SizedBox(width: 8),
+                                        Text('Yorumlar'),
+                                      ],
+                                    ),
                                   ),
-                                  trailing: menu['image_url'] != null
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: Image.network(
-                                            menu['image_url'],
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover,
+                                ],
+                                labelColor: Color(0xFF8A0C27),
+                                unselectedLabelColor: Colors.grey,
+                                indicatorColor: Color(0xFF8A0C27),
+                              ),
+                              SizedBox(
+                                height: 300,
+                                child: TabBarView(
+                                  children: [
+                                    // Menü Tab
+                                    filteredMenus.isEmpty
+                                        ? const Padding(
+                                            padding: EdgeInsets.all(16),
+                                            child: Center(
+                                              child: Text(
+                                                  "Bu restoran için uygun menü bulunamadı."),
+                                            ),
+                                          )
+                                        : ListView(
+                                            shrinkWrap: true,
+                                            physics:
+                                                const ClampingScrollPhysics(),
+                                            children: filteredMenus.map((menu) {
+                                              final menuPrice =
+                                                  (menu['price'] ?? 0.0)
+                                                      .toDouble();
+                                              return Container(
+                                                color: Colors.yellow[100],
+                                                child: ListTile(
+                                                  contentPadding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8,
+                                                  ),
+                                                  title: Text(
+                                                    menu['name'],
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  subtitle: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                          menu['description'] ??
+                                                              ''),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        '${menuPrice.toStringAsFixed(2)} ₺',
+                                                        style: const TextStyle(
+                                                          color: Colors.green,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  trailing: menu['image_url'] !=
+                                                          null
+                                                      ? ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                          child:
+                                                              _buildNetworkImage(
+                                                            menu['image_url'],
+                                                            width: 60,
+                                                            height: 60,
+                                                          ),
+                                                        )
+                                                      : null,
+                                                ),
+                                              );
+                                            }).toList(),
                                           ),
-                                        )
-                                      : null,
+                                    // Yorumlar Tab
+                                    SizedBox(
+                                      height: 300,
+                                      child: RestaurantReviewsPage(
+                                        restaurant: restaurant,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },

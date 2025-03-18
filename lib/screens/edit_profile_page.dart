@@ -7,9 +7,9 @@ import '../models/user_model.dart';
 import '../services/database_service.dart';
 
 class EditProfilePage extends StatefulWidget {
-  final UserModel user;
+  UserModel user;
 
-  const EditProfilePage({super.key, required this.user});
+  EditProfilePage({super.key, required this.user});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -63,7 +63,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _isLoading = true;
       });
 
-      await DatabaseService().uploadProfileImage(widget.user.id, image.path);
+      // If there's an existing profile image, delete it first
+      if (widget.user.profileImageUrl != null) {
+        await DatabaseService()
+            .deleteProfileImage(widget.user.id, widget.user.profileImageUrl!);
+      }
+
+      // Upload the new image and get the URL
+      String newImageUrl = await DatabaseService()
+          .uploadProfileImage(widget.user.id, image.path);
+
+      // Update the user model with new image URL
+      final updatedUser = UserModel(
+        id: widget.user.id,
+        email: widget.user.email,
+        name: widget.user.name,
+        surname: widget.user.surname,
+        phoneNumber: widget.user.phoneNumber,
+        address: widget.user.address,
+        userType: widget.user.userType,
+        restaurantId: widget.user.restaurantId,
+        profileImageUrl: newImageUrl,
+      );
+
+      // Update the user in database
+      await DatabaseService().updateUserProfile(updatedUser);
+
+      // Update the widget's user data
+      setState(() {
+        widget.user = updatedUser;
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,8 +122,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _isLoading = true;
       });
 
+      // Delete image from storage and update user profile
       await DatabaseService()
           .deleteProfileImage(widget.user.id, widget.user.profileImageUrl!);
+
+      // Update user model in database with null profile image URL
+      final updatedUser = UserModel(
+        id: widget.user.id,
+        email: widget.user.email,
+        name: widget.user.name,
+        surname: widget.user.surname,
+        phoneNumber: widget.user.phoneNumber,
+        address: widget.user.address,
+        userType: widget.user.userType,
+        restaurantId: widget.user.restaurantId,
+        profileImageUrl: null,
+      );
+      await DatabaseService().updateUserProfile(updatedUser);
+
+      // Update the widget's user data
+      setState(() {
+        widget.user = updatedUser;
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -201,27 +250,44 @@ class _EditProfilePageState extends State<EditProfilePage> {
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
-                  builder: (context) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.photo_library),
-                        title: const Text('Yeni Fotoğraf Seç'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pickImage();
-                        },
-                      ),
-                      if (widget.user.profileImageUrl != null)
+                  backgroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (context) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                         ListTile(
-                          leading: const Icon(Icons.delete),
+                          leading: const Icon(Icons.photo_library,
+                              color: Color(0xFF8A0C27)),
+                          title: const Text('Yeni Fotoğraf Seç'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pickImage();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.delete, color: Colors.red),
                           title: const Text('Fotoğrafı Kaldır'),
                           onTap: () {
                             Navigator.pop(context);
                             _deleteProfileImage();
                           },
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -231,7 +297,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ],
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -258,10 +323,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     _buildProfileImage(),
                     const SizedBox(height: 24),
-
                     CustomTextFormField(
-                        controller: _nameController,
-                        labelText: 'Ad',
+                      controller: _nameController,
+                      labelText: 'Ad',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Lütfen adınızı girin';
@@ -386,9 +450,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
                     const SizedBox(height: 24),
-
-                    CustomButton(text: 'Değişiklikleri Kaydet',
-                        onPressed: _saveChanges,
+                    CustomButton(
+                      text: 'Değişiklikleri Kaydet',
+                      onPressed: _saveChanges,
                     ),
                   ],
                 ),

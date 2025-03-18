@@ -4,9 +4,14 @@ import 'dart:io';
 import '../models/user_model.dart';
 import '../models/restaurant_model.dart';
 import '../models/menu_item_model.dart';
+import '../models/review_model.dart';
+import '../models/review_report_model.dart';
 
 class DatabaseService {
   final _supabase = Supabase.instance.client;
+
+  // Supabase instance'ına erişim için getter
+  SupabaseClient get supabase => _supabase;
 
   // Kullanıcı İşlemleri
   Future<void> createUser(UserModel user) async {
@@ -56,13 +61,14 @@ class DatabaseService {
   Future<String> uploadProfileImage(String userId, String filePath) async {
     try {
       final fileExt = filePath.split('.').last;
-      final fileName = 'profile_$userId.$fileExt';
+      final fileName =
+          '$userId/profile.$fileExt'; // Dosya yolunu userId/profile.ext şeklinde değiştirdik
       final storageResponse = await _supabase.storage
-          .from('profile_images')
+          .from('profile-images')
           .upload(fileName, File(filePath));
 
       final imageUrl =
-          _supabase.storage.from('profile_images').getPublicUrl(fileName);
+          _supabase.storage.from('profile-images').getPublicUrl(fileName);
 
       // Kullanıcı profilini güncelle
       await _supabase
@@ -77,8 +83,9 @@ class DatabaseService {
 
   Future<void> deleteProfileImage(String userId, String imageUrl) async {
     try {
-      final fileName = imageUrl.split('/').last;
-      await _supabase.storage.from('profile_images').remove([fileName]);
+      final fileName =
+          '$userId/profile.${imageUrl.split('.').last}'; // Dosya yolunu düzelttik
+      await _supabase.storage.from('profile-images').remove([fileName]);
 
       // Kullanıcı profilinden fotoğrafı kaldır
       await _supabase
@@ -294,6 +301,162 @@ class DatabaseService {
           .toList();
     } catch (e) {
       throw Exception('Restoran menüleri yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  // Review İşlemleri
+  Future<void> createReview(ReviewModel review) async {
+    try {
+      await _supabase.from('reviews').insert(review.toMap());
+    } catch (e) {
+      throw Exception('Yorum eklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> updateReview(String reviewId, ReviewModel review) async {
+    try {
+      await _supabase.from('reviews').update(review.toMap()).eq('id', reviewId);
+    } catch (e) {
+      throw Exception('Yorum güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> deleteReview(String reviewId) async {
+    try {
+      await _supabase.from('reviews').delete().eq('id', reviewId);
+    } catch (e) {
+      throw Exception('Yorum silinirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<ReviewModel?> getReview(String reviewId) async {
+    try {
+      final data =
+          await _supabase.from('reviews').select().eq('id', reviewId).single();
+      return data != null ? ReviewModel.fromMap(data) : null;
+    } catch (e) {
+      throw Exception('Yorum yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<ReviewModel>> getRestaurantReviews(String restaurantId) async {
+    try {
+      final data = await _supabase
+          .from('reviews')
+          .select()
+          .eq('restaurant_id', restaurantId)
+          .order('created_at', ascending: false);
+      return (data as List)
+          .map((review) => ReviewModel.fromMap(review))
+          .toList();
+    } catch (e) {
+      throw Exception('Yorumlar yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<ReviewModel>> getUserReviews(String userId) async {
+    try {
+      final data = await _supabase
+          .from('reviews')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+      return (data as List)
+          .map((review) => ReviewModel.fromMap(review))
+          .toList();
+    } catch (e) {
+      throw Exception('Kullanıcı yorumları yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<String> uploadReviewImage(String restaurantId, String userId,
+      String filePath, String fileName) async {
+    try {
+      final fileExt = filePath.split('.').last;
+      final uploadPath = 'review-photos/$restaurantId/$userId/$fileName';
+
+      await _supabase.storage
+          .from('review-photos')
+          .upload(uploadPath, File(filePath));
+
+      return _supabase.storage.from('review-photos').getPublicUrl(uploadPath);
+    } catch (e) {
+      throw Exception('Fotoğraf yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  // Review Report İşlemleri
+  Future<void> createReviewReport(ReviewReportModel report) async {
+    try {
+      await _supabase.from('review_reports').insert(report.toMap());
+      // Bildirim oluştur
+      await _createAdminNotification('review_report', {
+        'report_id': report.id,
+        'review_id': report.reviewId,
+        'reporter_id': report.reporterId,
+        'reason': report.reason,
+      });
+    } catch (e) {
+      throw Exception('Rapor oluşturulurken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> updateReportStatus(String reportId, ReportStatus status) async {
+    try {
+      await _supabase.from('review_reports').update(
+          {'status': status.toString().split('.').last}).eq('id', reportId);
+    } catch (e) {
+      throw Exception('Rapor durumu güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<ReviewReportModel>> getPendingReports() async {
+    try {
+      final data = await _supabase
+          .from('review_reports')
+          .select()
+          .eq('status', 'pending')
+          .order('created_at', ascending: false);
+      return (data as List)
+          .map((report) => ReviewReportModel.fromMap(report))
+          .toList();
+    } catch (e) {
+      throw Exception('Raporlar yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  // Admin Bildirim İşlemleri
+  Future<void> _createAdminNotification(
+      String type, Map<String, dynamic> content) async {
+    try {
+      await _supabase.from('admin_notifications').insert({
+        'type': type,
+        'content': content,
+      });
+    } catch (e) {
+      debugPrint('Admin bildirimi oluşturulurken hata: $e');
+    }
+  }
+
+  Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      await _supabase
+          .from('admin_notifications')
+          .update({'is_read': true}).eq('id', notificationId);
+    } catch (e) {
+      throw Exception('Bildirim durumu güncellenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAdminNotifications() async {
+    try {
+      final data = await _supabase
+          .from('admin_notifications')
+          .select()
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(data);
+    } catch (e) {
+      throw Exception('Bildirimler yüklenirken bir hata oluştu: $e');
     }
   }
 }
