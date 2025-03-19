@@ -200,6 +200,20 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage> {
                                           height: 100,
                                           width: 100,
                                           fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              height: 100,
+                                              width: 100,
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ),
                                     );
