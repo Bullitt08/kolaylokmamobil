@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/restaurant_model.dart';
 import '../services/database_service.dart';
-import 'restaurant_menu_page.dart';
 import '../customs/customicon.dart';
 import 'restaurant_reviews_page.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/review_model.dart';
+import '../widgets/restaurant_photo_gallery.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -19,6 +21,8 @@ class _SearchPageState extends State<SearchPage> {
   List<RestaurantModel> _allRestaurants = [];
   Map<String, List<Map<String, dynamic>>> _menuItems = {};
   List<RestaurantModel> _filteredRestaurants = [];
+  final Map<String, PageController> _photoPageControllers = {};
+  final Map<String, int> _currentPhotoIndices = {};
 
   bool _isLoading = false;
 
@@ -31,6 +35,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _photoPageControllers.values.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
@@ -66,61 +71,352 @@ class _SearchPageState extends State<SearchPage> {
   void _performSearch(String query) {
     final lowerQuery = query.toLowerCase();
     final directMatches = _allRestaurants.where((restaurant) {
-      return restaurant.name.toLowerCase().startsWith(lowerQuery);
+      return restaurant.name.toLowerCase().contains(lowerQuery);
     }).toList();
 
     final menuMatches = <RestaurantModel>[];
     for (final restaurant in _allRestaurants) {
       final menus = _menuItems[restaurant.id] ?? [];
-      final hasMatch = menus.any((menu) =>
-          menu['name'].toString().toLowerCase().startsWith(lowerQuery));
+      final hasMatch = menus.any(
+          (menu) => menu['name'].toString().toLowerCase().contains(lowerQuery));
       if (hasMatch) {
         menuMatches.add(restaurant);
       }
     }
 
     setState(() {
-      _filteredRestaurants = directMatches + menuMatches;
+      _filteredRestaurants = {...directMatches, ...menuMatches}.toList();
     });
   }
 
-  Widget _buildNetworkImage(String? imageUrl,
-      {double? width, double? height, BoxFit fit = BoxFit.cover}) {
-    if (imageUrl == null) {
-      return Container(
-        width: width,
-        height: height,
-        color: Colors.grey[200],
-        child: const Icon(Icons.image_not_supported, color: Colors.grey),
-      );
-    }
+  void _showEnlargedPhoto(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: const EdgeInsets.all(8),
+              minScale: 0.5,
+              maxScale: 4,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return Image.network(
-      imageUrl,
-      width: width,
-      height: height,
-      fit: fit,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          width: width,
-          height: height,
-          color: Colors.grey[200],
-          child: const Center(
-            child: CircularProgressIndicator(),
+  String _getWeekdayName(String day) {
+    switch (day.toLowerCase()) {
+      case 'monday':
+        return 'Pazartesi';
+      case 'tuesday':
+        return 'Salı';
+      case 'wednesday':
+        return 'Çarşamba';
+      case 'thursday':
+        return 'Perşembe';
+      case 'friday':
+        return 'Cuma';
+      case 'saturday':
+        return 'Cumartesi';
+      case 'sunday':
+        return 'Pazar';
+      default:
+        return day;
+    }
+  }
+
+  Widget _buildRestaurantBottomSheet(BuildContext context,
+      RestaurantModel restaurant, ScrollController scrollController) {
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          StatefulBuilder(
+            builder: (context, setState) {
+              return FutureBuilder<List<String>>(
+                future: Future.wait([
+                  _databaseService.getRestaurantPhotos(restaurant.id),
+                  _databaseService.getRestaurantReviews(restaurant.id)
+                ]).then((List<dynamic> results) {
+                  final List<String> restaurantPhotos =
+                      List<String>.from(results[0]);
+                  final List<ReviewModel> reviews =
+                      List<ReviewModel>.from(results[1]);
+                  final List<String> reviewPhotos = reviews
+                      .expand((review) => List<String>.from(review.photos))
+                      .toList();
+                  return [...restaurantPhotos, ...reviewPhotos];
+                }),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final allPhotos = snapshot.data!;
+                    final sliderPhotos = allPhotos.take(10).toList();
+
+                    if (sliderPhotos.isEmpty) {
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.restaurant,
+                            size: 50, color: Colors.grey),
+                      );
+                    }
+
+                    if (!_photoPageControllers.containsKey(restaurant.id)) {
+                      _photoPageControllers[restaurant.id] = PageController();
+                      _currentPhotoIndices[restaurant.id] = 0;
+                    }
+
+                    return RestaurantPhotoGallery(
+                      sliderPhotos: sliderPhotos,
+                      allPhotos: allPhotos,
+                      controller: _photoPageControllers[restaurant.id]!,
+                      currentIndex: _currentPhotoIndices[restaurant.id]!,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPhotoIndices[restaurant.id] = index;
+                        });
+                      },
+                    );
+                  }
+                  return Container(
+                    height: 200,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.restaurant,
+                        size: 50, color: Colors.grey),
+                  );
+                },
+              );
+            },
           ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          width: width,
-          height: height,
-          color: Colors.grey[200],
-          child: const Icon(Icons.error_outline, color: Colors.red),
-        );
-      },
-      cacheWidth: width?.toInt(),
-      cacheHeight: height?.toInt(),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  restaurant.name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${restaurant.rating.toStringAsFixed(1)} (${restaurant.ratingCount})',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final Uri url = Uri.parse(
+                        'https://www.google.com/maps/dir/?api=1&destination=${restaurant.latitude},${restaurant.longitude}');
+                    try {
+                      await launchUrl(url);
+                    } catch (e) {
+                      debugPrint('Harita açılamadı: $e');
+                    }
+                  },
+                  icon: const Icon(Icons.directions),
+                  label: const Text('Rota Oluştur'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8A0C27),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 45),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const TabBar(
+                  tabs: [
+                    Tab(text: 'Genel Bakış'),
+                    Tab(text: 'Menü'),
+                    Tab(text: 'Yorumlar'),
+                  ],
+                  labelColor: Color(0xFF8A0C27),
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: Color(0xFF8A0C27),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                // Genel Bakış Tab
+                SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (restaurant.description.isNotEmpty) ...[
+                        const Text(
+                          'Açıklama',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(restaurant.description),
+                      ],
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Adres',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(restaurant.address),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Telefon',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(restaurant.phone_number),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Çalışma Saatleri',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var entry in restaurant.workingHours.entries)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                '${_getWeekdayName(entry.key)}: ${entry.value['open'] ?? 'Kapalı'} - ${entry.value['close'] ?? 'Kapalı'}',
+                                style: const TextStyle(height: 1.5),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Menü Tab
+                ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _menuItems[restaurant.id]?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final menus = _menuItems[restaurant.id] ?? [];
+                    final menu = menus[index];
+                    final menuPrice = (menu['price'] ?? 0.0).toDouble();
+
+                    final bool isHighlighted =
+                        _searchController.text.isNotEmpty &&
+                            (menu['name'].toString().toLowerCase().contains(
+                                    _searchController.text.toLowerCase()) ||
+                                menu['description']
+                                    .toString()
+                                    .toLowerCase()
+                                    .contains(
+                                        _searchController.text.toLowerCase()));
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: isHighlighted ? Colors.yellow[100] : null,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        title: Text(
+                          menu['name'],
+                          style: TextStyle(
+                            fontWeight: isHighlighted
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(menu['description'] ?? ''),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${menuPrice.toStringAsFixed(2)} ₺',
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: menu['image_url'] != null
+                            ? GestureDetector(
+                                onTap: () => _showEnlargedPhoto(
+                                    context, menu['image_url']),
+                                child: Hero(
+                                  tag: 'menu_image_${menu['image_url']}',
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      menu['image_url'],
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+                // Yorumlar Tab
+                RestaurantReviewsPage(
+                  restaurant: restaurant,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -140,209 +436,107 @@ class _SearchPageState extends State<SearchPage> {
         backgroundColor: const Color(0xFFEDEFE8),
         iconTheme: const IconThemeData(color: Color(0xFF8A0C27)),
       ),
-      body: Column(
-        children: [
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator())
-          else if (_filteredRestaurants.isEmpty)
-            const Center(
-              child: Text(
-                "Aranan ürün bulunamadı.",
-                style: TextStyle(fontSize: 18, color: Colors.red),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: _filteredRestaurants.length,
-                itemBuilder: (context, index) {
-                  final restaurant = _filteredRestaurants[index];
-                  final menus = _menuItems[restaurant.id] ?? [];
-
-                  final filteredMenus = menus.where((menu) {
-                    return menu['name']
-                        .toString()
-                        .toLowerCase()
-                        .startsWith(_searchController.text.toLowerCase());
-                  }).toList();
-
-                  return Card(
-                    margin: const EdgeInsets.all(8),
-                    child: ExpansionTile(
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            restaurant.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
+      body: Container(
+        color: const Color(0xFFEDEFE8),
+        child: Column(
+          children: [
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (_filteredRestaurants.isEmpty)
+              const Center(
+                child: Text(
+                  "Aranan ürün veya restoran bulunamadı.",
+                  style: TextStyle(fontSize: 18, color: Colors.red),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _filteredRestaurants.length,
+                  itemBuilder: (context, index) {
+                    final restaurant = _filteredRestaurants[index];
+                    return GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.white,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(20)),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            restaurant.description,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
+                          builder: (context) => DraggableScrollableSheet(
+                            initialChildSize: 0.6,
+                            minChildSize: 0.3,
+                            maxChildSize: 0.9,
+                            expand: false,
+                            builder: (context, scrollController) =>
+                                _buildRestaurantBottomSheet(
+                                    context, restaurant, scrollController),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.star, color: Colors.amber, size: 20),
-                              const SizedBox(width: 4),
-                              Text(
-                                restaurant.rating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (restaurant.imageUrl != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: _buildNetworkImage(
-                                  restaurant.imageUrl,
-                                  height: 150,
-                                  width: MediaQuery.of(context).size.width - 32,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      children: [
-                        DefaultTabController(
-                          length: 2,
+                        );
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.all(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const TabBar(
-                                tabs: [
-                                  Tab(
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CustomIcon(
-                                            iconData: Icons.restaurant_menu),
-                                        SizedBox(width: 8),
-                                        Text('Menü'),
-                                      ],
-                                    ),
-                                  ),
-                                  Tab(
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CustomIcon(iconData: Icons.reviews),
-                                        SizedBox(width: 8),
-                                        Text('Yorumlar'),
-                                      ],
+                              Text(
+                                restaurant.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                restaurant.description,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star,
+                                      color: Colors.amber, size: 20),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${restaurant.rating.toStringAsFixed(1)} (${restaurant.ratingCount})',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
-                                labelColor: Color(0xFF8A0C27),
-                                unselectedLabelColor: Colors.grey,
-                                indicatorColor: Color(0xFF8A0C27),
                               ),
-                              SizedBox(
-                                height: 300,
-                                child: TabBarView(
-                                  children: [
-                                    // Menü Tab
-                                    filteredMenus.isEmpty
-                                        ? const Padding(
-                                            padding: EdgeInsets.all(16),
-                                            child: Center(
-                                              child: Text(
-                                                  "Bu restoran için uygun menü bulunamadı."),
-                                            ),
-                                          )
-                                        : ListView(
-                                            shrinkWrap: true,
-                                            physics:
-                                                const ClampingScrollPhysics(),
-                                            children: filteredMenus.map((menu) {
-                                              final menuPrice =
-                                                  (menu['price'] ?? 0.0)
-                                                      .toDouble();
-                                              return Container(
-                                                color: Colors.yellow[100],
-                                                child: ListTile(
-                                                  contentPadding:
-                                                      const EdgeInsets
-                                                          .symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 8,
-                                                  ),
-                                                  title: Text(
-                                                    menu['name'],
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  subtitle: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                          menu['description'] ??
-                                                              ''),
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        '${menuPrice.toStringAsFixed(2)} ₺',
-                                                        style: const TextStyle(
-                                                          color: Colors.green,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  trailing: menu['image_url'] !=
-                                                          null
-                                                      ? ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8),
-                                                          child:
-                                                              _buildNetworkImage(
-                                                            menu['image_url'],
-                                                            width: 60,
-                                                            height: 60,
-                                                          ),
-                                                        )
-                                                      : null,
-                                                ),
-                                              );
-                                            }).toList(),
-                                          ),
-                                    // Yorumlar Tab
-                                    SizedBox(
-                                      height: 300,
-                                      child: RestaurantReviewsPage(
-                                        restaurant: restaurant,
-                                      ),
+                              if (restaurant.imageUrl.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.network(
+                                      restaurant.imageUrl,
+                                      height: 150,
+                                      width: MediaQuery.of(context).size.width -
+                                          32,
+                                      fit: BoxFit.cover,
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

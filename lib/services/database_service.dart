@@ -19,9 +19,13 @@ class DatabaseService {
   }
 
   Future<UserModel?> getUser(String userId) async {
-    final data =
-        await _supabase.from('users').select().eq('id', userId).single();
-    return data != null ? UserModel.fromMap(data) : null;
+    try {
+      final data =
+          await _supabase.from('users').select().eq('id', userId).single();
+      return UserModel.fromMap(data);
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<void> updateUser(String userId, Map<String, dynamic> data) async {
@@ -58,19 +62,30 @@ class DatabaseService {
     }
   }
 
+  Future<String> uploadRestaurantPhoto(
+      String restaurantId, String localFilePath, String fileName) async {
+    try {
+      await _supabase.storage.from('restaurant-photos').upload(
+          'restaurant-photos/$restaurantId/$fileName', File(localFilePath));
+
+      return _supabase.storage
+          .from('restaurant-photos')
+          .getPublicUrl('restaurant-photos/$restaurantId/$fileName');
+    } catch (e) {
+      throw Exception('Restoran fotoğrafı yüklenirken hata oluştu: $e');
+    }
+  }
+
   Future<String> uploadProfileImage(String userId, String filePath) async {
     try {
-      final fileExt = filePath.split('.').last;
-      final fileName =
-          '$userId/profile.$fileExt'; // Dosya yolunu userId/profile.ext şeklinde değiştirdik
-      final storageResponse = await _supabase.storage
+      final fileName = '$userId/profile.${filePath.split('.').last}';
+      await _supabase.storage
           .from('profile-images')
           .upload(fileName, File(filePath));
 
       final imageUrl =
           _supabase.storage.from('profile-images').getPublicUrl(fileName);
 
-      // Kullanıcı profilini güncelle
       await _supabase
           .from('users')
           .update({'profile_image_url': imageUrl}).eq('id', userId);
@@ -78,6 +93,21 @@ class DatabaseService {
       return imageUrl;
     } catch (e) {
       throw Exception('Profil fotoğrafı yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<String> uploadMenuItemPhoto(
+      String restaurantId, String localFilePath, String fileName) async {
+    try {
+      await _supabase.storage
+          .from('menu-photos')
+          .upload('menu-photos/$restaurantId/$fileName', File(localFilePath));
+
+      return _supabase.storage
+          .from('menu-photos')
+          .getPublicUrl('menu-photos/$restaurantId/$fileName');
+    } catch (e) {
+      throw Exception('Ürün fotoğrafı yüklenirken hata oluştu: $e');
     }
   }
 
@@ -102,12 +132,16 @@ class DatabaseService {
   }
 
   Future<RestaurantModel?> getRestaurant(String restaurantId) async {
-    final data = await _supabase
-        .from('restaurants')
-        .select()
-        .eq('id', restaurantId)
-        .single();
-    return data != null ? RestaurantModel.fromMap(data) : null;
+    try {
+      final data = await _supabase
+          .from('restaurants')
+          .select()
+          .eq('id', restaurantId)
+          .single();
+      return RestaurantModel.fromMap(data);
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<List<RestaurantModel>> getAllRestaurants() async {
@@ -181,6 +215,25 @@ class DatabaseService {
     }
   }
 
+  Future<void> deleteRestaurantPhoto(
+      String restaurantId, String photoUrl) async {
+    try {
+      // Önce veritabanından kaydı sil
+      await _supabase
+          .from('restaurant_photos')
+          .delete()
+          .match({'restaurant_id': restaurantId, 'photo_url': photoUrl});
+
+      // Sonra storage'dan dosyayı sil
+      final filePath = photoUrl.split('restaurant-photos/').last;
+      await _supabase.storage
+          .from('restaurant-photos')
+          .remove(['restaurant-photos/$filePath']);
+    } catch (e) {
+      throw Exception('Restoran fotoğrafı silinirken hata oluştu: $e');
+    }
+  }
+
   // Favoriler İşlemleri
   Future<void> toggleFavorite(String userId, String restaurantId) async {
     final data = await _supabase
@@ -188,18 +241,15 @@ class DatabaseService {
         .select('favorites')
         .eq('id', userId)
         .single();
-
-    if (data != null) {
-      final favorites = List<String>.from(data['favorites'] ?? []);
-      if (favorites.contains(restaurantId)) {
-        favorites.remove(restaurantId);
-      } else {
-        favorites.add(restaurantId);
-      }
-      await _supabase
-          .from('users')
-          .update({'favorites': favorites}).eq('id', userId);
+    final favorites = List<String>.from(data['favorites'] ?? []);
+    if (favorites.contains(restaurantId)) {
+      favorites.remove(restaurantId);
+    } else {
+      favorites.add(restaurantId);
     }
+    await _supabase
+        .from('users')
+        .update({'favorites': favorites}).eq('id', userId);
   }
 
   // Arama İşlemleri
@@ -232,25 +282,23 @@ class DatabaseService {
   Future<void> deleteMenuItem(String itemId) async {
     try {
       print('Silinecek menü öğesi ID: $itemId');
-
-      // Önce öğenin var olduğunu kontrol edelim
-      final item =
-          await _supabase.from('menu_items').select().eq('id', itemId).single();
-
-      print('Silinecek öğe bulundu: $item');
-
-      if (item == null) {
-        throw Exception('Silinecek menü öğesi bulunamadı');
-      }
-
-      // Silme işlemini gerçekleştirelim
       await _supabase.from('menu_items').delete().eq('id', itemId);
-
       print('Silme işlemi başarılı');
     } catch (e, stackTrace) {
       print('Menü öğesi silinirken hata: $e');
       print('Hata detayı: $stackTrace');
       throw Exception('Menü öğesi silinirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<void> deleteMenuItemPhoto(String restaurantId, String photoUrl) async {
+    try {
+      final filePath = photoUrl.split('menu-photos/').last;
+      await _supabase.storage
+          .from('menu-photos')
+          .remove(['menu-photos/$filePath']);
+    } catch (e) {
+      throw Exception('Menü öğesi fotoğrafı silinirken hata oluştu: $e');
     }
   }
 
@@ -333,9 +381,9 @@ class DatabaseService {
     try {
       final data =
           await _supabase.from('reviews').select().eq('id', reviewId).single();
-      return data != null ? ReviewModel.fromMap(data) : null;
+      return ReviewModel.fromMap(data);
     } catch (e) {
-      throw Exception('Yorum yüklenirken bir hata oluştu: $e');
+      return null;
     }
   }
 
@@ -372,9 +420,7 @@ class DatabaseService {
   Future<String> uploadReviewImage(String restaurantId, String userId,
       String filePath, String fileName) async {
     try {
-      final fileExt = filePath.split('.').last;
       final uploadPath = 'review-photos/$restaurantId/$userId/$fileName';
-
       await _supabase.storage
           .from('review-photos')
           .upload(uploadPath, File(filePath));
@@ -457,6 +503,25 @@ class DatabaseService {
       return List<Map<String, dynamic>>.from(data);
     } catch (e) {
       throw Exception('Bildirimler yüklenirken bir hata oluştu: $e');
+    }
+  }
+
+  Future<List<String>> getRestaurantPhotos(String restaurantId) async {
+    try {
+      final List<FileObject> result = await _supabase.storage
+          .from('restaurant-photos')
+          .list(path: 'restaurant-photos/$restaurantId');
+
+      return Future.wait(
+        result.map((file) async {
+          return _supabase.storage
+              .from('restaurant-photos')
+              .getPublicUrl('restaurant-photos/$restaurantId/${file.name}');
+        }),
+      );
+    } catch (e) {
+      debugPrint('Restaurant photos could not be loaded: $e');
+      return [];
     }
   }
 }
