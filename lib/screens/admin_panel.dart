@@ -5,6 +5,7 @@ import 'package:kolaylokma/customs/customicon.dart';
 import 'package:kolaylokma/customs/customtextformfield.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/restaurant_model.dart';
 import '../services/database_service.dart';
 import '../services/auth_service.dart';
@@ -234,139 +235,183 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen>
   final DatabaseService _databaseService = DatabaseService();
   final AuthService _authService = AuthService();
   final MapController _mapController = MapController();
+  List<String> restaurantPhotos = [];
+  bool _isLoadingPhotos = false;
   bool _isLoadingLocation = false;
   bool _isLoadingAddress = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeLocation();
-  }
-
-  Future<void> _initializeLocation() async {
-    if (!mounted) return;
-    setState(() => _isLoadingLocation = true);
-    try {
-      final position = await _getCurrentLocation();
-      if (!mounted) return;
-      setState(() {
-        _selectedLocation = widget.restaurant != null
-            ? LatLng(widget.restaurant!.latitude, widget.restaurant!.longitude)
-            : LatLng(position.latitude, position.longitude);
-      });
-      _mapController.move(_selectedLocation!, 15);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Konum alınamadı')),
-        );
-      }
-    } finally {
-      if (!mounted) return;
-      setState(() => _isLoadingLocation = false);
-    }
-
-    if (!mounted) return;
     if (widget.restaurant != null) {
       _nameController.text = widget.restaurant!.name;
       _addressController.text = widget.restaurant!.address;
       _descriptionController.text = widget.restaurant!.description;
       _phoneController.text = widget.restaurant!.phone_number;
+      _selectedLocation =
+          LatLng(widget.restaurant!.latitude, widget.restaurant!.longitude);
+      _loadRestaurantPhotos();
     }
   }
 
-  Future<void> _getAddressFromLatLng(LatLng location) async {
-    setState(() => _isLoadingAddress = true);
+  Future<void> _loadRestaurantPhotos() async {
+    if (widget.restaurant == null) return;
+
+    setState(() => _isLoadingPhotos = true);
     try {
-      final response = await http.get(Uri.parse(
-          'https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.latitude}&lon=${location.longitude}&addressdetails=1'));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['display_name'] != null) {
-          final address = data['display_name'];
-          setState(() {
-            _addressController.text = address;
-          });
-        }
-      }
+      final photos =
+          await _databaseService.getRestaurantPhotos(widget.restaurant!.id);
+      setState(() {
+        restaurantPhotos = photos.take(4).toList(); // Limit to 4 photos
+        _isLoadingPhotos = false;
+      });
     } catch (e) {
-      debugPrint('Adres alınırken hata oluştu: $e');
-    } finally {
-      setState(() => _isLoadingAddress = false);
+      print('Error loading restaurant photos: $e');
+      setState(() => _isLoadingPhotos = false);
     }
   }
 
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Konum servisleri devre dışı');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Konum izni reddedildi');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Konum izni kalıcı olarak reddedildi');
-    }
-
-    return await Geolocator.getCurrentPosition();
-  }
-
-  void animatedMapMove(LatLng destLocation, double destZoom) {
-    final latTween = Tween<double>(
-        begin: _mapController.camera.center.latitude,
-        end: destLocation.latitude);
-    final lngTween = Tween<double>(
-        begin: _mapController.camera.center.longitude,
-        end: destLocation.longitude);
-    final zoomTween =
-        Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
-
-    final controller = AnimationController(
-        duration: const Duration(milliseconds: 500), vsync: this);
-
-    final Animation<double> animation =
-        CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
-
-    controller.addListener(() {
-      _mapController.move(
-        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
-        zoomTween.evaluate(animation),
+  Future<void> _addPhoto() async {
+    if (restaurantPhotos.length >= 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('En fazla 4 fotoğraf ekleyebilirsiniz')),
       );
-    });
+      return;
+    }
 
-    animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        controller.dispose();
-      } else if (status == AnimationStatus.dismissed) {
-        controller.dispose();
-      }
-    });
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
 
-    controller.forward();
+    if (image == null) return;
+
+    setState(() => _isLoadingPhotos = true);
+    try {
+      final fileName =
+          'restaurant_${widget.restaurant?.id ?? 'new'}_${DateTime.now().millisecondsSinceEpoch}.${image.path.split('.').last}';
+      final imageUrl = await _databaseService.uploadRestaurantPhoto(
+        widget.restaurant?.id ?? 'new',
+        image.path,
+        fileName,
+      );
+
+      setState(() {
+        restaurantPhotos.add(imageUrl);
+        _isLoadingPhotos = false;
+      });
+    } catch (e) {
+      print('Error uploading photo: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fotoğraf yüklenirken hata oluştu: $e')),
+      );
+      setState(() => _isLoadingPhotos = false);
+    }
   }
 
-  Future<void> _goToUserLocation() async {
-    setState(() => _isLoadingLocation = true);
+  Future<void> _removePhoto(String photoUrl) async {
+    setState(() => _isLoadingPhotos = true);
     try {
-      final position = await _getCurrentLocation();
-      final userLocation = LatLng(position.latitude, position.longitude);
-      animatedMapMove(userLocation, 15);
+      await _databaseService.deleteRestaurantPhoto(
+          widget.restaurant?.id ?? '', photoUrl);
+      setState(() {
+        restaurantPhotos.remove(photoUrl);
+        _isLoadingPhotos = false;
+      });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Konum alınamadı')),
-        );
-      }
-    } finally {
-      setState(() => _isLoadingLocation = false);
+      print('Error deleting photo: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fotoğraf silinirken hata oluştu: $e')),
+      );
+      setState(() => _isLoadingPhotos = false);
     }
+  }
+
+  Widget _buildPhotoSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Restoran Fotoğrafları',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: _isLoadingPhotos
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    ...restaurantPhotos.map((photo) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  photo,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close,
+                                        color: Colors.red, size: 20),
+                                    onPressed: () => _removePhoto(photo),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 24,
+                                      minHeight: 24,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                    if (restaurantPhotos.length < 4)
+                      InkWell(
+                        onTap: _addPhoto,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xFF8A0C27)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate,
+                                  color: Color(0xFF8A0C27)),
+                              SizedBox(height: 4),
+                              Text('Fotoğraf Ekle',
+                                  style: TextStyle(color: Color(0xFF8A0C27))),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -558,6 +603,17 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen>
                 ],
               ),
               const SizedBox(height: 16),
+              Text(
+                'Restoran Fotoğrafları',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF8A0C27),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildPhotoSection(),
+              const SizedBox(height: 16),
               CustomButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate() &&
@@ -650,5 +706,99 @@ class _RestaurantEditScreenState extends State<RestaurantEditScreen>
     _descriptionController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _getAddressFromLatLng(LatLng location) async {
+    setState(() => _isLoadingAddress = true);
+    try {
+      final response = await http.get(Uri.parse(
+          'https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.latitude}&lon=${location.longitude}&addressdetails=1'));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['display_name'] != null) {
+          final address = data['display_name'];
+          setState(() {
+            _addressController.text = address;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Adres alınırken hata oluştu: $e');
+    } finally {
+      setState(() => _isLoadingAddress = false);
+    }
+  }
+
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Konum servisleri devre dışı');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Konum izni reddedildi');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Konum izni kalıcı olarak reddedildi');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void animatedMapMove(LatLng destLocation, double destZoom) {
+    final latTween = Tween<double>(
+        begin: _mapController.camera.center.latitude,
+        end: destLocation.latitude);
+    final lngTween = Tween<double>(
+        begin: _mapController.camera.center.longitude,
+        end: destLocation.longitude);
+    final zoomTween =
+        Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
+
+    final controller = AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this);
+
+    final Animation<double> animation =
+        CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
+
+    controller.addListener(() {
+      _mapController.move(
+        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+        zoomTween.evaluate(animation),
+      );
+    });
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.dispose();
+      } else if (status == AnimationStatus.dismissed) {
+        controller.dispose();
+      }
+    });
+
+    controller.forward();
+  }
+
+  Future<void> _goToUserLocation() async {
+    setState(() => _isLoadingLocation = true);
+    try {
+      final position = await _getCurrentLocation();
+      final userLocation = LatLng(position.latitude, position.longitude);
+      animatedMapMove(userLocation, 15);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Konum alınamadı')),
+        );
+      }
+    } finally {
+      setState(() => _isLoadingLocation = false);
+    }
   }
 }

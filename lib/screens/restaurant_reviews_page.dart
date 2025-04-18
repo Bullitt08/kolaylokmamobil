@@ -730,13 +730,11 @@ class _RestaurantReviewsPageState extends State<RestaurantReviewsPage> {
                             children: [
                               const Icon(Icons.star, color: Colors.amber),
                               Text(
-                                ' ${widget.restaurant.rating.toStringAsFixed(1)}',
+                                ' ${widget.restaurant.rating.toStringAsFixed(1)} (${widget.restaurant.ratingCount})',
                                 style: const TextStyle(fontSize: 18),
                               ),
                             ],
                           ),
-                          Text(
-                              '${widget.restaurant.ratingCount} değerlendirme'),
                         ],
                       ),
                       CustomButton(
